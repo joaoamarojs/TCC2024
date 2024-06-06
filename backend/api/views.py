@@ -22,12 +22,12 @@ class Barraca_FestaListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Barraca_Festa.objects.filter(author=user)
+        
+        return Barraca_Festa.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -37,8 +37,8 @@ class Barraca_FestaDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Barraca_Festa.objects.filter(author=user)
+        
+        return Barraca_Festa.objects.filter()
 
 
 class BarracaListCreate(generics.ListCreateAPIView):
@@ -46,12 +46,12 @@ class BarracaListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Barraca.objects.filter(author=user)
+        
+        return Barraca.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -61,8 +61,8 @@ class BarracaDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Barraca.objects.filter(author=user)
+        
+        return Barraca.objects.filter()
 
 
 class Caixa_FestaListCreate(generics.ListCreateAPIView):
@@ -70,12 +70,12 @@ class Caixa_FestaListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Caixa_Festa.objects.filter(author=user)
+        
+        return Caixa_Festa.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -85,8 +85,8 @@ class Caixa_FestaDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Caixa_Festa.objects.filter(author=user)
+        
+        return Caixa_Festa.objects.filter()
 
 
 class CartaoListCreate(generics.ListCreateAPIView):
@@ -94,12 +94,12 @@ class CartaoListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Cartao.objects.filter(author=user)
+        
+        return Cartao.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -109,8 +109,8 @@ class CartaoDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Cartao.objects.filter(author=user)
+        
+        return Cartao.objects.filter()
 
 
 class ClienteListCreate(generics.ListCreateAPIView):
@@ -118,12 +118,12 @@ class ClienteListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Cliente.objects.filter(author=user)
+        
+        return Cliente.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -133,8 +133,8 @@ class ClienteDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Cliente.objects.filter(author=user)        
+        
+        return Cliente.objects.filter()        
 
 
 class ColaboradorListCreate(generics.ListCreateAPIView):
@@ -142,12 +142,12 @@ class ColaboradorListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Colaborador.objects.filter(author=user)
+        
+        return Colaborador.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -157,8 +157,8 @@ class ColaboradorDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Colaborador.objects.filter(author=user)
+        
+        return Colaborador.objects.filter()
 
 
 class EstoqueListCreate(generics.ListCreateAPIView):
@@ -166,12 +166,12 @@ class EstoqueListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Estoque.objects.filter(author=user)
+        
+        return Estoque.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -181,8 +181,8 @@ class EstoqueDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Estoque.objects.filter(author=user) 
+        
+        return Estoque.objects.filter() 
 
 
 class FestaListCreate(generics.ListCreateAPIView):
@@ -190,12 +190,12 @@ class FestaListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Festa.objects.filter(author=user)
+        
+        return Festa.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -205,8 +205,8 @@ class FestaDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Festa.objects.filter(author=user) 
+        
+        return Festa.objects.filter() 
 
 
 class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
@@ -214,12 +214,12 @@ class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Movimentacao_Barraca.objects.filter(author=user)
+        
+        return Movimentacao_Barraca.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -229,8 +229,8 @@ class Movimentacao_BarracaDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Movimentacao_Barraca.objects.filter(author=user) 
+        
+        return Movimentacao_Barraca.objects.filter() 
 
 
 class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
@@ -238,12 +238,12 @@ class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Movimentacao_Caixa.objects.filter(author=user)
+        
+        return Movimentacao_Caixa.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -253,8 +253,8 @@ class Movimentacao_CaixaDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Movimentacao_Caixa.objects.filter(author=user) 
+        
+        return Movimentacao_Caixa.objects.filter() 
 
 
 class ProdutoListCreate(generics.ListCreateAPIView):
@@ -262,12 +262,12 @@ class ProdutoListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Produto.objects.filter(author=user)
+        
+        return Produto.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -277,8 +277,8 @@ class ProdutoDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Produto.objects.filter(author=user)        
+        
+        return Produto.objects.filter()        
 
 
 class Tipo_produtoListCreate(generics.ListCreateAPIView):
@@ -286,12 +286,12 @@ class Tipo_produtoListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Tipo_produto.objects.filter(author=user)
+        
+        return Tipo_produto.objects.filter()
 
     def perform_create(self, serializer):
         if serializer.is_valid():
-            serializer.save(author=self.request.user)
+            serializer.save()
         else:
             print(serializer.errors)
 
@@ -301,8 +301,8 @@ class Tipo_produtoDelete(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Tipo_produto.objects.filter(author=user)
+        
+        return Tipo_produto.objects.filter()
 
 
 class CreateUserView(generics.CreateAPIView):
