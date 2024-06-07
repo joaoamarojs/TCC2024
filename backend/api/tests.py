@@ -1,7 +1,10 @@
 from django.test import TestCase
 from .models.barraca import Barraca
+from .models.cliente import Cliente
+from .models.colaborador import Colaborador
 from .models.produto import Produto
 from .models.tipo_produto import Tipo_produto
+from django.core.exceptions import ValidationError
 
 
 class BarracaTestCase(TestCase):
@@ -86,3 +89,35 @@ class BarracaProntaComDoisProdutoTestCase(TestCase):
         self.assertEqual(str(self.barraca), "Barraca Teste")
         self.assertEqual(str(self.produto), "Produto Teste")     
         self.assertEqual(str(self.produto2), "Produto Teste2")           
+
+
+class ColaboradorTestCase(TestCase):
+    def setUp(self):
+        self.cpf_valido = "" #Coloque um cpf valido
+        self.cpf_invalido = "123.456.789-00"  
+
+    def test_colaborador_criacao(self):
+        colaborador = Colaborador.objects.create(nome="Colaborador Teste",data_nascimento="2000-01-01",cpf=self.cpf_valido,ativo=True)
+        self.assertEqual(colaborador.nome, "Colaborador Teste")
+        self.assertEqual(colaborador.cpf, self.cpf_valido)
+
+    def test_colaborador_cpf_invalido(self):
+        with self.assertRaises(ValidationError):
+            colaborador = Colaborador(nome="Colaborador Teste",data_nascimento="2000-01-01",cpf=self.cpf_invalido,ativo=True)
+            colaborador.full_clean()        
+
+
+class ClienteTestCase(TestCase):
+    def setUp(self):
+        self.cpf_valido = ""  #Coloque um cpf valido
+        self.cpf_invalido = "123.456.789-00" 
+
+    def test_cliente_criacao(self):
+        cliente = Cliente.objects.create(nome="Cliente Teste",data_nascimento="2000-01-01",cpf=self.cpf_valido,ativo=True)
+        self.assertEqual(cliente.nome, "Cliente Teste")
+        self.assertEqual(cliente.cpf, self.cpf_valido)
+
+    def test_cliente_cpf_invalido(self):
+        with self.assertRaises(ValidationError):
+            cliente = Cliente(nome="Cliente Teste",data_nascimento="2000-01-01",cpf=self.cpf_invalido,ativo=True)
+            cliente.full_clean()        
