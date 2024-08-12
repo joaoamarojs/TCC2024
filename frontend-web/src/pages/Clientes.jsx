@@ -15,6 +15,48 @@ function Clientes(){
         return <div>Error: {error}</div>;
     }
 
+    const [clients, setClients] = useState([]);
+    const [content, setContent] = useState("");
+    const [title, setTitle] = useState("");
+
+    useEffect(() => {
+        getClients();
+    }, []);
+
+    const getClients = () => {
+        api
+            .get("/api/cliente/")
+            .then((res) => res.data)
+            .then((data) => {
+                setClients(data);
+                console.log(data);
+            })
+            .catch((err) => alert(err));
+    };
+
+    const deleteClient = (id) => {
+        api
+            .delete(`/api/cliente/delete/${id}/`)
+            .then((res) => {
+                if (res.status === 204) alert("Cliente deletado!");
+                else alert("Falhou em deletar cliente.");
+                getClients();
+            })
+            .catch((error) => alert(error));
+    };
+
+    const createClient = (e) => {
+        e.preventDefault();
+        api
+            .post("/api/cliente/", { content, title })
+            .then((res) => {
+                if (res.status === 201) alert("Cliente cadastrado!");
+                else alert("Falhou em cadastrar cliente.");
+                getClients();
+            })
+            .catch((err) => alert(err));
+    };
+
     return <div className="wrapper">
                 <NavSideBar name={user.username}/>
                 <div className="main">
