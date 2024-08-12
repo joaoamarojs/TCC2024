@@ -22,24 +22,35 @@ function RegisterAndLogout(){
 function App() {
   const { user, loading, error } = useUserData();
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
   <BrowserRouter>
       <Routes>
         <Route
           path="/"
           element={<ProtectedRoute>
-            <Home user={user} loading={loading} error={error}/>
-          </ProtectedRoute>} />
-          <Route
+            <Home user={user}/>
+          </ProtectedRoute>} 
+        />
+        <Route
           path="/usuarios"
           element={<ProtectedRoute>
-            <Usuarios user={user} loading={loading} error={error}/>
-          </ProtectedRoute>} />
-          <Route
+            <Usuarios user={user}/>
+          </ProtectedRoute>} 
+        />
+        <Route
           path="/clientes"
           element={<ProtectedRoute>
-            <Clientes user={user} loading={loading} error={error}/>
-          </ProtectedRoute>} />
+            <Clientes user={user}/>
+          </ProtectedRoute>}
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />

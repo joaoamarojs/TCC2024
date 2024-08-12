@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from .models.barraca_festa import Barraca_Festa
 from .models.barraca import Barraca
@@ -15,20 +15,59 @@ from .models.tipo_produto import Tipo_produto
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    group = serializers.SerializerMethodField()  # Use um SerializerMethodField
+    group_name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ["id", "username", "password"]
-        extra_kwargs = {"password": {"write_only": True}}
+        fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'group', 'group_name')
+
+    def get_group(self, obj):
+        groups = obj.groups.all()
+        return [group.id for group in groups]  # Retorna uma lista de IDs dos grupos
+
+    def get_group_name(self, obj):
+        groups = obj.groups.all()
+        return [group.name for group in groups]  # Retorna uma lista de nomes dos grupos
 
     def create(self, validated_data):
-        print(validated_data)
-        user = User.objects.create_user(**validated_data)
-        return user    
+        password = validated_data.pop('password')
+        groups = validated_data.pop('group', [])  # Pode ser uma lista de IDs
+
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            password=password,
+            email=validated_data.get('email', ''),
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            is_active=validated_data.get('is_active', True),
+            is_staff=validated_data.get('is_staff', False),
+        )
+        
+        if groups:
+            user.groups.set(groups)  # Adiciona todos os grupos
+
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        groups = validated_data.pop('group', None)  # Pode ser uma lista de IDs
+
+        if password:
+            instance.set_password(password)
+
+        if groups is not None:
+            instance.groups.set(groups)  # Atualiza os grupos
+
+        return super().update(instance, validated_data)
     
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email']  # Adicione outros campos se necessário
+        fields = ['id', 'username', 'email', 'is_active']  
+
 
 class Barraca_FestaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -99,4 +138,10 @@ class ProdutoSerializer(serializers.ModelSerializer):
 class Tipo_produtoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tipo_produto
-        fields = ["id", "nome", "dataCriacao"]        
+        fields = ["id", "nome", "dataCriacao"]      
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ('id', 'name')          

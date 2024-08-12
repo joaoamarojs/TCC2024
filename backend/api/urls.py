@@ -29,4 +29,5 @@ urlpatterns = [
     path("tipo_produto/delete/<int:pk>/", views.Tipo_produtoDelete.as_view(), name="delete-tipo_produto"),
     path("user/<int:pk>/", views.UserUpdateView.as_view(), name="update-user"),
     path("user/", views.UserListView.as_view(), name="list-users"),
+    path("groups/", views.GroupListView.as_view(), name="list-groups"),
 ]

@@ -5,23 +5,19 @@ import Table from '../components/Table';
 import api from "../api";
 
 function Usuarios(props) {
-  const { user, loading, error } = props;
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  const { user } = props;
 
   const [users, setUsers] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [is_active, setIsActive] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState('none');
 
   useEffect(() => {
     getUsers();
+    getGroups();
   }, []);
 
   const getUsers = () => {
@@ -29,6 +25,15 @@ function Usuarios(props) {
       .then((res) => res.data)
       .then((data) => {
         setUsers(data);
+      })
+      .catch((err) => alert(err));
+  };
+
+  const getGroups = () => {
+    api.get("/api/groups/")
+      .then((res) => res.data)
+      .then((data) => {
+        setGroups(data);
       })
       .catch((err) => alert(err));
   };
@@ -48,13 +53,15 @@ function Usuarios(props) {
     const endpoint = selectedUserId ? `/api/user/${selectedUserId}/` : "/api/user/register/";
     const method = selectedUserId ? 'put' : 'post';
 
-    api[method](endpoint, { username, password })
+    api[method](endpoint, { username, password, is_active, group: selectedGroup })
       .then((res) => {
         if (res.status === 201 || res.status === 200) {
           alert("Usuário salvo com sucesso!");
           setSelectedUserId(null);
           setUsername("");
           setPassword("");
+          setIsActive(false);
+          setSelectedGroup('none');
         } else {
           alert("Falhou em salvar usuário.");
         }
@@ -63,14 +70,25 @@ function Usuarios(props) {
       .catch((err) => alert(err));
   };
 
+  const clearForm = () => {
+    setSelectedUserId(null);
+    setUsername("");
+    setPassword("");
+    setIsActive(false);
+    setSelectedGroup('none');
+  }
+
   const editUser = (user) => {
-    setSelectedUserId(user.id);  // Supondo que o objeto user tenha um campo 'id'
+    setSelectedUserId(user.id);
     setUsername(user.username);
-    setPassword("");  // Ou mantenha a senha atual, dependendo da lógica do backend
+    setPassword(""); // Ou mantenha a senha atual, dependendo da lógica do backend
+    setIsActive(user.is_active);
+    setSelectedGroup(user.group ? user.group :'none'); // Ajuste aqui se você está lidando com o ID ou o nome do grupo
   };
 
   const headers = [
     { label: 'Usuario', key: 'username' },
+    { label: 'Ativo', key: 'is_active' },
     { label: 'Actions', key: 'actions' }
   ];
 
@@ -102,46 +120,30 @@ function Usuarios(props) {
                     <form onSubmit={createUser}>
                       <div className="mb-4">
                         <label className="form-label">Usuario</label>
-                        <input
-                          type="text"
-                          id="username"
-                          name="username"
-                          required
-                          onChange={(e) => setUsername(e.target.value)}
-                          value={username}
-                          className="form-control"
-                          placeholder="Usuario"
-                        />
+                        <input type="text" id="username" name="username" required onChange={(e) => setUsername(e.target.value)} value={username} className="form-control" placeholder="Usuario"/>
                       </div>
                       <div className="mb-4">
                         <label className="form-label">Password</label>
-                        <input
-                          type="password"
-                          id="password"
-                          name="password"
-                          required
-                          onChange={(e) => setPassword(e.target.value)}
-                          value={password}
-                          className="form-control"
-                          placeholder="Senha"
-                        />
+                        <input type="password" id="password" name="password" required onChange={(e) => setPassword(e.target.value)} value={password} className="form-control" placeholder="Senha"/>
                       </div>
                       <div className="mb-4">
                         <label className="form-label">Tipo Usuario</label>
-                        <select className="form-select">
-                          <option>Administrativo</option>
-                          <option>Barraca</option>
-                          <option>Caixa</option>
+                        <select className="form-select" value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
+                            <option value='none'>Tipo_Usuario</option>
+                            {groups.map((group) => (
+                                <option key={group.id} value={group.id}>{group.name}</option>
+                            ))}
                         </select>
                       </div>
                       <div className="form-check form-switch mb-4">
-                        <input className="form-check-input" type="checkbox" />
+                        <input className="form-check-input" type="checkbox" checked={is_active} onChange={() => setIsActive(!is_active)}/>
                         <label className="form-check-label">Ativo</label>
                       </div>
                       <div className="mb-4">
                         <button type="submit" className="btn btn-primary me-2">
                           {selectedUserId ? "Atualizar" : "Salvar"}
                         </button>
+                        <button type="button" className="btn btn-primary me-2" onClick={clearForm}>Limpar</button>
                       </div>
                     </form>
                   </div>

@@ -19,7 +19,7 @@ function NavSideBar(props) {
 							<div className="dropdown-menu dropdown-menu-start">
 								<a className='dropdown-item' href=''><i className="align-middle me-1"></i> Perfil</a>
 								<div className="dropdown-divider"></div>
-								<a className="dropdown-item" href="/logout">Sair</a>
+								<a className="dropdown-item" href="logout">Sair</a>
 							</div>
 
 							<div className="sidebar-user-subtitle">Administrativo</div>

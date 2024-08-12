@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, ColaboradorSerializer, EstoqueSerializer, FestaSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, ProdutoSerializer, Tipo_produtoSerializer
+from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, ColaboradorSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models.barraca_festa import Barraca_Festa
 from .models.barraca import Barraca
@@ -356,3 +356,9 @@ class UserUpdateView(generics.UpdateAPIView):
         if not pk:
             return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
         return super().update(request, *args, **kwargs)
+    
+
+class GroupListView(generics.ListAPIView):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticated]    

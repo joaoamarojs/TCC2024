@@ -1,18 +1,9 @@
 import NavSideBar from "../components/NavSideBar";
 import NavTopBar from "../components/NavTopBar";
 import '../styles/Admin.css';
-import '/src/assets/app.js';
 
 function Home(props){
-    const { user, loading, error } = props;
-
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
+    const { user } = props;
 
     return <div className="wrapper">
                 <NavSideBar name={user.username}/>
