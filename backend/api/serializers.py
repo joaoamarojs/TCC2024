@@ -23,8 +23,12 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         print(validated_data)
         user = User.objects.create_user(**validated_data)
-        return user
-        
+        return user    
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']  # Adicione outros campos se necessário
 
 class Barraca_FestaSerializer(serializers.ModelSerializer):
     class Meta:
