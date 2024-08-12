@@ -57,7 +57,7 @@ class CartaoSerializer(serializers.ModelSerializer):
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cliente
-        fields = ["id", "nome", "data_nascimento", "ativo"]     
+        fields = ["id", "nome", "data_nascimento", "cpf", "ativo"]     
 
 
 class ColaboradorSerializer(serializers.ModelSerializer):

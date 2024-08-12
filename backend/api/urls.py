@@ -11,6 +11,7 @@ urlpatterns = [
     path("cartao/", views.CartaoListCreate.as_view(), name="cartao-list"),
     path("cartao/delete/<int:pk>/", views.CartaoDelete.as_view(), name="delete-cartao"),
     path("cliente/", views.ClienteListCreate.as_view(), name="cliente-list"),
+    path("cliente/<int:pk>/", views.ClienteUpdateView.as_view(), name="update-cliente"),
     path("cliente/delete/<int:pk>/", views.ClienteDelete.as_view(), name="delete-cliente"),
     path("colaborador/", views.ColaboradorListCreate.as_view(), name="colaborador-list"),
     path("colaborador/delete/<int:pk>/", views.ColaboradorDelete.as_view(), name="delete-colaborador"),
@@ -26,4 +27,6 @@ urlpatterns = [
     path("produto/delete/<int:pk>/", views.ProdutoDelete.as_view(), name="delete-produto"),
     path("tipo_produto/", views.Tipo_produtoListCreate.as_view(), name="tipo_produto-list"),
     path("tipo_produto/delete/<int:pk>/", views.Tipo_produtoDelete.as_view(), name="delete-tipo_produto"),
+    path("user/<int:pk>/", views.UserUpdateView.as_view(), name="update-user"),
+    path("user/", views.UserListView.as_view(), name="list-users"),
 ]

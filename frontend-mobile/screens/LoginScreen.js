@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, Pressable } from 'react-native';
 import Modal from 'react-native-modal'; // Certifique-se de que a biblioteca está instalada e importada corretamente
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -75,9 +75,12 @@ const LoginScreen = () => {
         value={password}
         onChangeText={setPassword}
       />
-      <Button title="Login" onPress={handleLogin} style={styles.button} />
-      <View style={styles.buttonSpacing} />
-      <Button title="API" onPress={openModal} style={styles.button} />
+      <Pressable style={styles.button} onPress={handleLogin}>
+        <Text style={styles.text}>Login</Text>
+      </Pressable>
+      <Pressable style={styles.button} onPress={openModal}>
+        <Text style={styles.text}>API</Text>
+      </Pressable>
       
       {/* Indicador de Carregamento com Overlay */}
       <Modal
@@ -97,14 +100,19 @@ const LoginScreen = () => {
           <Text style={styles.modalTitle}>Configurar Endereço da API</Text>
           <TextInput
             style={styles.modalInput}
-            placeholder="Endereço da API"
+            placeholder="http://"
             value={apiUrl}
             onChangeText={setApiUrl}
           />
           <View style={styles.modalButtonContainer}>
-            <Button title="Salvar" onPress={saveApiUrl} />
+            
+            <Pressable style={styles.button} onPress={saveApiUrl}>
+              <Text style={styles.text}>Salvar</Text>
+            </Pressable>
             <View style={styles.modalButtonSpacing} />
-            <Button title="Cancelar" onPress={closeModal} />
+            <Pressable style={styles.button} onPress={closeModal}>
+              <Text style={styles.text}>Cancelar</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -116,25 +124,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 16,
+    padding: 32,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 24,
-    marginBottom: 16,
-    textAlign: 'center',
+    fontSize: 58,
+    marginBottom: 32,
+    color: '#B0DE09',
+    textAlign: 'left',
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: '#59D817',
     borderWidth: 1,
     marginBottom: 12,
     paddingHorizontal: 8,
-  },
-  buttonSpacing: {
-    marginVertical: 10, // Espaço entre os botões
+    color:'#52DF07'
   },
   button: {
+    alignItems: 'center',
     marginVertical: 10,
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 4,
+    elevation: 3,
+    backgroundColor: '#07DF12',
+  },
+  text: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
   overlay: {
     flex: 1,

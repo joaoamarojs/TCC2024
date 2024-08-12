@@ -1,11 +1,10 @@
 import NavSideBar from "../components/NavSideBar";
 import NavTopBar from "../components/NavTopBar";
-import useUserData from '../hooks/useUserData';
 import '../styles/Admin.css';
 import '/src/assets/app.js';
 
-function Home(){
-    const { user, loading, error } = useUserData();
+function Home(props){
+    const { user, loading, error } = props;
 
     if (loading) {
         return <div>Loading...</div>;

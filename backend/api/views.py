@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, ColaboradorSerializer, EstoqueSerializer, FestaSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -127,6 +127,20 @@ class ClienteListCreate(generics.ListCreateAPIView):
             serializer.save()
         else:
             print(serializer.errors)
+
+
+class ClienteUpdateView(generics.UpdateAPIView):
+    serializer_class = ClienteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Cliente.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if not pk:
+            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)
 
 
 class ClienteDelete(generics.DestroyAPIView):
@@ -319,3 +333,26 @@ class UserProfileView(generics.ListCreateAPIView):
         user = request.user
         serializer = UserProfileSerializer(user)
         return Response(serializer.data)
+    
+
+class UserListView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        
+        return User.objects.filter()
+
+
+class UserUpdateView(generics.UpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if not pk:
+            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)

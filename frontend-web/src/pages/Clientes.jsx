@@ -1,11 +1,11 @@
 import NavSideBar from "../components/NavSideBar";
 import NavTopBar from "../components/NavTopBar";
-import useUserData from '../hooks/useUserData';
-import '../styles/Admin.css';
-import '/src/assets/app.js';
+import { useState, useEffect } from "react";
+import Table from '../components/Table';
+import api from "../api";
 
-function Clientes(){
-    const { user, loading, error } = useUserData();
+function Clientes(props){
+    const { user, loading, error } = props;
 
     if (loading) {
         return <div>Loading...</div>;
@@ -16,8 +16,11 @@ function Clientes(){
     }
 
     const [clients, setClients] = useState([]);
-    const [content, setContent] = useState("");
-    const [title, setTitle] = useState("");
+    const [nome, setNome] = useState("");
+    const [data_nascimento, setDataNascimento] = useState("");
+    const [cpf, setCpf] = useState("");
+    const [ativo, setAtivo] = useState(true);
+    const [selectedClientId, setSelectedClientId] = useState(null);
 
     useEffect(() => {
         getClients();
@@ -29,14 +32,12 @@ function Clientes(){
             .then((res) => res.data)
             .then((data) => {
                 setClients(data);
-                console.log(data);
             })
             .catch((err) => alert(err));
     };
 
     const deleteClient = (id) => {
-        api
-            .delete(`/api/cliente/delete/${id}/`)
+        api.delete(`/api/cliente/delete/${id}/`)
             .then((res) => {
                 if (res.status === 204) alert("Cliente deletado!");
                 else alert("Falhou em deletar cliente.");
@@ -47,15 +48,45 @@ function Clientes(){
 
     const createClient = (e) => {
         e.preventDefault();
-        api
-            .post("/api/cliente/", { content, title })
-            .then((res) => {
-                if (res.status === 201) alert("Cliente cadastrado!");
-                else alert("Falhou em cadastrar cliente.");
-                getClients();
-            })
-            .catch((err) => alert(err));
+        const endpoint = selectedClientId ? `/api/cliente/${selectedClientId}/` : "/api/cliente/";
+        const method = selectedClientId ? 'put' : 'post';
+
+        api[method](endpoint, { nome, data_nascimento, cpf, ativo })
+        .then((res) => {
+            if (res.status === 201 || res.status === 200) {
+                alert("Usuário salvo com sucesso!");
+                setSelectedClientId(null);
+                setNome("");
+                setCpf("");
+                setDataNascimento("");
+                setAtivo(true);
+            } else {
+                alert("Falhou em salvar usuário.");
+            }
+            getClients();
+        })
+        .catch((err) => alert(err));    
     };
+
+    const editClient = (client) => {
+        setSelectedClientId(client.id); 
+        setNome(client.nome);
+        setDataNascimento(client.data_nascimento); 
+        setCpf(client.cpf); 
+        setAtivo(client.ativo); // Carrega o valor de "ativo"
+    };
+
+    const headers = [
+        { label: 'Nome', key: 'nome' },
+        { label: 'Data Nascimento', key: 'data_nascimento' },
+        { label: 'Cpf', key: 'cpf' },
+        { label: 'Actions', key: 'actions' }
+      ];
+    
+      const actions = [
+        { icon: 'edit-2', func: editClient },
+        { icon: 'trash', func: (user) => deleteClient(user.id) }
+      ];
 
     return <div className="wrapper">
                 <NavSideBar name={user.username}/>
@@ -76,30 +107,36 @@ function Clientes(){
                                             <hr/>
                                         </div>
                                         <div className="card-body">
-                                            <form>
+                                            <form onSubmit={createClient}>
                                                 <div className="mb-4">
                                                     <label className="form-label">Nome</label>
-                                                    <input type="text" className="form-control" placeholder="Nome" />
+                                                    <input type="text" id="nome" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
                                                 </div>
                                                 <div className="mb-4">
                                                     <label className="form-label">CPF</label>
-                                                    <input type="password" className="form-control" placeholder="Cpf" />
+                                                    <input type="text" id="cpf" name="cpf" required onChange={(e) => setCpf(e.target.value)} value={cpf} className="form-control" placeholder="Cpf" />
                                                 </div>
                                                 <div className="mb-4">
                                                     <label className="form-label">Data Nascimento</label>
-                                                    <input type="date" className="form-control" />
+                                                    <input type="date" id="data_nascimento" name="data_nascimento" required onChange={(e) => setDataNascimento(e.target.value)} value={data_nascimento} className="form-control" />
                                                 </div>
                                                 <div className="form-check form-switch mb-4">
-                                                    <input className="form-check-input" type="checkbox" id="flexSwitchCheckChecked"/>
-                                                    <label className="form-check-label" for="flexSwitchCheckChecked">Ativo</label>
+                                                    <input className="form-check-input" type="checkbox" checked={ativo} onChange={(e) => setAtivo(e.target.checked)} />
+                                                    <label className="form-check-label">Ativo</label>
                                                 </div>
                                                 <div className="mb-4">
-                                                    <button type="submit" className="btn btn-primary me-2">Salvar</button>
-                                                    <button type="button" className="btn btn-primary">Excluir</button>
+                                                    <button type="submit" className="btn btn-primary me-2">{selectedClientId ? "Atualizar" : "Salvar"}</button>
                                                 </div>                                       
                                             </form>
                                         </div>
                                     </div>    
+                                </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-12 col-xl-6">
+                                    <div className="card">
+                                        <Table headers={headers} data={clients} actions={actions} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
