@@ -4,10 +4,16 @@ import api from "../api"
 import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants"
 import { useState, useEffect, cloneElement } from "react"
 import useUserData from '../hooks/useUserData';
+import Home from "../pages/Home"
+import Usuarios from "../pages/Usuarios"
+import Clientes from "../pages/Clientes"
+import NavSideBar from "./NavSideBar"
+import NavTopBar from "./NavTopBar"
 
 function ProtectedRoute({children}){
     const { user, loading: userLoading, error: userError } = useUserData();
     const [isAuthorized, setIsAuthorized] = useState(null);
+    const [selectedPage, setSelectedPage] = useState('home');
 
     useEffect(() => {
         auth().catch(() => setIsAuthorized(false))
@@ -56,7 +62,32 @@ function ProtectedRoute({children}){
         return <div>Erro ao carregar dados do usuário: {userError}</div>;
     }
 
-    return isAuthorized ? cloneElement(children, { user }) : <Navigate to="/login" />;
+    const renderPage = () => {
+        switch (selectedPage) {
+            case 'home':
+                return <Home user={user} />;
+            case 'usuarios':
+                return <Usuarios user={user} />;
+            case 'clientes':
+                return <Clientes user={user} />;
+            default:
+                return <div>Página não encontrada.</div>;
+        }
+    };
+
+    return isAuthorized ? (
+        <div className="wrapper">
+            <NavSideBar name={user.username} onSelectPage={setSelectedPage} />
+            <div className="main">
+                <NavTopBar />
+                <main className="content">
+                    {renderPage()}
+                </main>
+            </div>    
+        </div>
+    ) : (
+        <Navigate to="/login" />
+    );
 }
 
 export default ProtectedRoute

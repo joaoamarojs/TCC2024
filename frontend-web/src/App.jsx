@@ -17,24 +17,7 @@ function App() {
   return (
   <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={<ProtectedRoute>
-            <Home/>
-          </ProtectedRoute>} 
-        />
-        <Route
-          path="/usuarios"
-          element={<ProtectedRoute>
-            <Usuarios/>
-          </ProtectedRoute>} 
-        />
-        <Route
-          path="/clientes"
-          element={<ProtectedRoute>
-            <Clientes/>
-          </ProtectedRoute>}
-        />
+        <Route path="/*" element={<ProtectedRoute />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="*" element={<NotFound />} />

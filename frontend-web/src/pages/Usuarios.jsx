@@ -20,6 +20,7 @@ function Usuarios(props) {
   useEffect(() => {
     getUsers();
     getGroups();
+    return () => {};
   }, []);
 
   const getUsers = () => {
@@ -131,11 +132,6 @@ function Usuarios(props) {
   ];
 
   return (
-    <div className="wrapper">
-      <NavSideBar name={user.username} />
-      <div className="main">
-        <NavTopBar />
-        <main className="content">
           <div className="container-fluid p-0">
             <div className="row mb-2 mb-xl-3">
               <div className="col-auto d-none d-sm-block">
@@ -200,9 +196,6 @@ function Usuarios(props) {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
   );
 }
 

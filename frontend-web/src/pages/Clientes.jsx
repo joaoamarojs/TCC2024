@@ -18,6 +18,7 @@ function Clientes(props){
     const [selectedClientId, setSelectedClientId] = useState(null);
 
     useEffect(() => {
+        console.log('aaaaa')
         getClients();
     }, []);
 
@@ -132,73 +133,65 @@ function Clientes(props){
     ];
 
     return (
-        <div className="wrapper">
-            <NavSideBar name={user.username}/>
-            <div className="main">
-                <NavTopBar />
-                <main className="content">
-                    <div className="container-fluid p-0">
-                        <div className="row mb-2 mb-xl-3">
-                            <div className="col-auto d-none d-sm-block">
-                                <h3>Clientes</h3>
-                            </div>
-                        </div>
-                        <div className="row">
-                            <div className="col-sm-6">
-                                <div className="card">
-                                    <div className="card-header">
-                                        <h5 className="card-title">Informações</h5>
-                                        <hr/>
-                                        <div className="response">        
-                                            {alert && (
-                                                <Alert
-                                                    className={alert.type}
-                                                    message={alert}
-                                                    onClose={handleCloseAlert}
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="card-body">
-                                        <form onSubmit={createClient}>
-                                            <div className="mb-4">
-                                                <label className="form-label">Nome</label>
-                                                <input type="text" id="nome" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="form-label">CPF</label>
-                                                <MaskedInput type="text" id="cpf" name="cpf" mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/,  '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]} guide={false} required onChange={(e) => setCpf(e.target.value)} value={cpf} className="form-control" placeholder="000.000.000-00" />
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="form-label">Data Nascimento</label>
-                                                <input type="date" id="data_nascimento" name="data_nascimento" required onChange={(e) => setDataNascimento(e.target.value)} value={data_nascimento} className="form-control" />
-                                            </div>
-                                            <div className="form-check form-switch mb-4">
-                                                <input className="form-check-input" type="checkbox" checked={ativo} onChange={() => setAtivo(!ativo)} />
-                                                <label className="form-check-label">Ativo</label>
-                                            </div>
-                                            <div className="mb-4">
-                                                <button type="submit" className="btn btn-primary me-2">
-                                                    {selectedClientId ? "Atualizar" : "Salvar"}
-                                                </button>
-                                                <button type="reset" className="btn btn-primary me-2" onClick={clearForm}>Limpar</button>
-                                            </div>                                       
-                                        </form>
-                                    </div>
-                                </div>    
-                            </div>
-                        </div>
-                        <div className="row">
-                            <div className="col-12 col-xl-6">
-                                <div className="card">
-                                    <Table headers={headers} data={clients} actions={actions} />
+            <div className="container-fluid p-0">
+                <div className="row mb-2 mb-xl-3">
+                    <div className="col-auto d-none d-sm-block">
+                        <h3>Clientes</h3>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-sm-6">
+                        <div className="card">
+                            <div className="card-header">
+                                <h5 className="card-title">Informações</h5>
+                                <hr/>
+                                <div className="response">        
+                                    {alert && (
+                                        <Alert
+                                            className={alert.type}
+                                            message={alert}
+                                            onClose={handleCloseAlert}
+                                        />
+                                    )}
                                 </div>
                             </div>
+                            <div className="card-body">
+                                <form onSubmit={createClient}>
+                                    <div className="mb-4">
+                                        <label className="form-label">Nome</label>
+                                        <input type="text" id="nome" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="form-label">CPF</label>
+                                        <MaskedInput type="text" id="cpf" name="cpf" mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/,  '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]} guide={false} required onChange={(e) => setCpf(e.target.value)} value={cpf} className="form-control" placeholder="000.000.000-00" />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="form-label">Data Nascimento</label>
+                                        <input type="date" id="data_nascimento" name="data_nascimento" required onChange={(e) => setDataNascimento(e.target.value)} value={data_nascimento} className="form-control" />
+                                    </div>
+                                    <div className="form-check form-switch mb-4">
+                                        <input className="form-check-input" type="checkbox" checked={ativo} onChange={() => setAtivo(!ativo)} />
+                                        <label className="form-check-label">Ativo</label>
+                                    </div>
+                                    <div className="mb-4">
+                                        <button type="submit" className="btn btn-primary me-2">
+                                            {selectedClientId ? "Atualizar" : "Salvar"}
+                                        </button>
+                                        <button type="reset" className="btn btn-primary me-2" onClick={clearForm}>Limpar</button>
+                                    </div>                                       
+                                </form>
+                            </div>
+                        </div>    
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-12 col-xl-6">
+                        <div className="card">
+                            <Table headers={headers} data={clients} actions={actions} />
                         </div>
                     </div>
-                </main>    
+                </div>
             </div>
-        </div>
     );
 }
 

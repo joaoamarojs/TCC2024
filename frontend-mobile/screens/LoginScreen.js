@@ -47,7 +47,7 @@ const LoginScreen = () => {
       },
       {
         headers: {
-          'Client-Type': 'web'
+          'Client-Type': 'mobile'
         }
       });
 
