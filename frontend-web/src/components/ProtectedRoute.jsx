@@ -2,9 +2,11 @@ import {Navigate} from "react-router-dom"
 import {jwtDecode} from "jwt-decode"
 import api from "../api"
 import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants"
-import { useState, useEffect } from "react"
+import { useState, useEffect, cloneElement } from "react"
+import useUserData from '../hooks/useUserData';
 
 function ProtectedRoute({children}){
+    const { user, loading: userLoading, error: userError } = useUserData();
     const [isAuthorized, setIsAuthorized] = useState(null);
 
     useEffect(() => {
@@ -46,11 +48,15 @@ function ProtectedRoute({children}){
         }
     }
 
-    if(isAuthorized === null){
+    if (userLoading || isAuthorized === null) {
         return <div>Carregando...</div>;
     }
 
-    return isAuthorized ? children : <Navigate to="/login"/>;
+    if (userError) {
+        return <div>Erro ao carregar dados do usuário: {userError}</div>;
+    }
+
+    return isAuthorized ? cloneElement(children, { user }) : <Navigate to="/login" />;
 }
 
 export default ProtectedRoute
