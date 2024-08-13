@@ -1,6 +1,26 @@
-
+import { useEffect, useState, useRef } from "react";
 
 function NavSideBar(props) {
+
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    const toggleDropdown = () => {
+        setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            setIsDropdownOpen(false);
+        }
+    };
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const handleSelectPage = (page, event) => {
         event.preventDefault();
@@ -24,20 +44,20 @@ function NavSideBar(props) {
             <div className="sidebar-content js-simplebar">
                 <a className='sidebar-brand' href='index.html'>
                     <span className="sidebar-brand-text align-middle">
-                        <img style={{ display: 'flex', width: '215px' }} src="/logote.png" alt="TDM-Logo" />
+                        <img style={{ display: 'flex', width: '215px' }} src="/img/logote.png" alt="TDM-Logo" />
                     </span>
                 </a>
 
                 <div className="sidebar-user">
                     <div className="d-flex justify-content-center">
                         <div className="flex-shrink-0">
-                            <img src="/avatar.jpg" className="avatar img-fluid rounded me-1" alt="Charles Hall" />
+                            <img src="/img/avatar.jpg" className="avatar img-fluid rounded me-1" alt="Charles Hall" />
                         </div>
                         <div className="flex-grow-1 ps-2">
-                            <a className="sidebar-user-title dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <a className="sidebar-user-title dropdown-toggle" onClick={toggleDropdown} href="#" data-bs-toggle="dropdown">
                                 {props.name}
                             </a>
-                            <div className="dropdown-menu dropdown-menu-start">
+                            <div className={`dropdown-menu dropdown-menu-start ${isDropdownOpen ? 'show' : ''}`}>
                                 <a className='dropdown-item' href=''><i className="align-middle me-1"></i> Perfil</a>
                                 <div className="dropdown-divider"></div>
                                 <a className="dropdown-item" href="logout">Sair</a>

@@ -18,7 +18,6 @@ function Clientes(props){
     const [selectedClientId, setSelectedClientId] = useState(null);
 
     useEffect(() => {
-        console.log('aaaaa')
         getClients();
     }, []);
 

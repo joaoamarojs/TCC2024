@@ -361,6 +361,15 @@ class UserUpdateView(generics.UpdateAPIView):
         return super().update(request, *args, **kwargs)
     
 
+class UserDeleteView(generics.DestroyAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        
+        return User.objects.filter()    
+    
+
 class GroupListView(generics.ListAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
