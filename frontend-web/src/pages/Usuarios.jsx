@@ -53,7 +53,7 @@ function Usuarios(props) {
     const endpoint = selectedUserId ? `/api/user/${selectedUserId}/` : "/api/user/register/";
     const method = selectedUserId ? 'put' : 'post';
 
-    api[method](endpoint, { username, password, is_active, group: selectedGroup })
+    api[method](endpoint, { username, password, is_active, groups: [selectedGroup] })
       .then((res) => {
         if (res.status === 201 || res.status === 200) {
           alert("Usuário salvo com sucesso!");
@@ -81,14 +81,14 @@ function Usuarios(props) {
   const editUser = (user) => {
     setSelectedUserId(user.id);
     setUsername(user.username);
-    setPassword(""); // Ou mantenha a senha atual, dependendo da lógica do backend
+    setPassword("");
     setIsActive(user.is_active);
-    setSelectedGroup(user.group ? user.group :'none'); // Ajuste aqui se você está lidando com o ID ou o nome do grupo
+    setSelectedGroup(user.groups[0] ? user.groups[0] :'none');
   };
 
   const headers = [
     { label: 'Usuario', key: 'username' },
-    { label: 'Ativo', key: 'is_active' },
+    { label: 'Tipo', key: 'group_name' },
     { label: 'Actions', key: 'actions' }
   ];
 

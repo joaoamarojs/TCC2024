@@ -16,24 +16,22 @@ from .models.tipo_produto import Tipo_produto
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    group = serializers.SerializerMethodField()  # Use um SerializerMethodField
+    groups = serializers.PrimaryKeyRelatedField(
+        queryset=Group.objects.all(),
+        many=True  # Permite manipular vários grupos
+    )
     group_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'group', 'group_name')
-
-    def get_group(self, obj):
-        groups = obj.groups.all()
-        return [group.id for group in groups]  # Retorna uma lista de IDs dos grupos
+        fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'groups', 'group_name')
 
     def get_group_name(self, obj):
-        groups = obj.groups.all()
-        return [group.name for group in groups]  # Retorna uma lista de nomes dos grupos
+        return [group.name for group in obj.groups.all()]  # Retorna os nomes dos grupos
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        groups = validated_data.pop('group', [])  # Pode ser uma lista de IDs
+        groups = validated_data.pop('groups', [])  # Recebe os grupos como lista de IDs
 
         user = User.objects.create_user(
             username=validated_data['username'],
@@ -44,21 +42,21 @@ class UserSerializer(serializers.ModelSerializer):
             is_active=validated_data.get('is_active', True),
             is_staff=validated_data.get('is_staff', False),
         )
-        
+
         if groups:
-            user.groups.set(groups)  # Adiciona todos os grupos
+            user.groups.set(groups)  # Define os grupos para o usuário
 
         return user
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
-        groups = validated_data.pop('group', None)  # Pode ser uma lista de IDs
+        groups = validated_data.pop('groups', None)  # Recebe os grupos como lista de IDs
 
         if password:
             instance.set_password(password)
 
         if groups is not None:
-            instance.groups.set(groups)  # Atualiza os grupos
+            instance.groups.set(groups)  # Atualiza os grupos do usuário
 
         return super().update(instance, validated_data)
     
