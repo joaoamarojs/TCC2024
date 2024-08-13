@@ -7,7 +7,6 @@ import NotFound from "./pages/NotFound"
 import Usuarios from "./pages/Usuarios"
 import Clientes from "./pages/Clientes"
 import ProtectedRoute from "./components/ProtectedRoute"
-import useUserData from './hooks/useUserData';
 
 function Logout() {
   localStorage.clear()
@@ -20,15 +19,6 @@ function RegisterAndLogout(){
 }
 
 function App() {
-  const { user, loading, error } = useUserData();
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
 
   return (
   <BrowserRouter>
@@ -36,19 +26,19 @@ function App() {
         <Route
           path="/"
           element={<ProtectedRoute>
-            <Home user={user}/>
+            <Home/>
           </ProtectedRoute>} 
         />
         <Route
           path="/usuarios"
           element={<ProtectedRoute>
-            <Usuarios user={user}/>
+            <Usuarios/>
           </ProtectedRoute>} 
         />
         <Route
           path="/clientes"
           element={<ProtectedRoute>
-            <Clientes user={user}/>
+            <Clientes/>
           </ProtectedRoute>}
         />
         <Route path="/login" element={<Login />} />
