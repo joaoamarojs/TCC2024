@@ -12,6 +12,7 @@ from .models.movimentacao_barraca import Movimentacao_Barraca
 from .models.movimentacao_caixa import Movimentacao_Caixa
 from .models.produto import Produto
 from .models.tipo_produto import Tipo_produto
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -142,4 +143,14 @@ class Tipo_produtoSerializer(serializers.ModelSerializer):
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ('id', 'name')          
+        fields = ('id', 'name')     
+
+    
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def validate(cls, attrs):
+        data = super().validate(attrs)
+        user = cls.user
+        if user:
+            data['user'] = user
+        return data

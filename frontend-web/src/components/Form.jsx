@@ -13,26 +13,33 @@ function Form({route, method}){
 
     const name = method === "login" ? "Login" : "Registrar"
 
-    const handleSubmit = async (e) => {
-        setLoading(true);
+        const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
 
-        try{
-            const res = await api.post(route, {username, password})
-            if(method === "login") {
+        try {
+            const res = await api.post(route, { username, password }, {
+                headers: {
+                    'Client-Type': 'web'
+                }
+            });
+            if (method === "login") {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
                 localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-                navigate("/")
-            }else{
-                navigate("/login")
+                navigate("/");
+            } else {
+                navigate("/login");
             }
-        }catch(error){
-            alert(error)
-        }finally{
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.detail) {
+                alert(error.response.data.detail);
+            } else {
+                alert("Ocorreu um erro inesperado. Tente novamente.");
+            }
+        } finally {
             setLoading(false);
         }
-    }
-
+    };
     return <form onSubmit={handleSubmit} className="form-container">
         <h1>{name}</h1>
         <input className="form-input" type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuario"/>

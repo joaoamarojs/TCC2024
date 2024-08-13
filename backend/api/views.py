@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User, Group
+from django.contrib.auth import authenticate
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
 from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, ColaboradorSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models.barraca_festa import Barraca_Festa
@@ -362,3 +365,42 @@ class GroupListView(generics.ListAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAuthenticated]    
+
+
+class CustomTokenObtainPairView(APIView):
+    permission_classes = [AllowAny]  
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        client_type = request.headers.get('client_type')
+        
+        if not client_type:
+            return Response({'detail': 'Header "client_type" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response({'detail': 'Usuario ou senha invalidos.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            group = Group.objects.get(user=user)
+        except Group.DoesNotExist:
+            return Response({'detail': 'Esse usuario não possui grupo.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if client_type == 'web' and group.id in [2, 3]:
+            return Response({'detail': 'Usuarios não Administrativos não podem acessar o web.'}, status=status.HTTP_403_FORBIDDEN)
+        elif client_type == 'mobile' and group.id in [1]:
+            return Response({'detail': 'Usuarios Administrativos não podem acessar o web.'}, status=status.HTTP_403_FORBIDDEN)
+        elif client_type == 'mobile' and group.id in [2, 3]:
+            token = RefreshToken.for_user(user)
+            return Response({
+                'access': str(token.access_token),
+                'refresh': str(token)
+            })
+        elif client_type == 'web' and group.id == 1:
+            token = RefreshToken.for_user(user)
+            return Response({
+                'access': str(token.access_token),
+                'refresh': str(token)
+            })
+        else:
+            return Response({'detail': 'Invalid client type.'}, status=status.HTTP_400_BAD_REQUEST)

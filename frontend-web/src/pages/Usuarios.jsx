@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import NavSideBar from "../components/NavSideBar";
 import NavTopBar from "../components/NavTopBar";
+import Alert from "../components/Alert";
 import Table from '../components/Table';
 import api from "../api";
 
 function Usuarios(props) {
   const { user } = props;
 
+  const [alert, setAlert] = useState(null);
   const [users, setUsers] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +28,11 @@ function Usuarios(props) {
       .then((data) => {
         setUsers(data);
       })
-      .catch((err) => alert(err));
+      .catch((error) => setAlert({
+          type: 'alert-error',
+          title: 'Erro!',
+          body: error
+        }));
   };
 
   const getGroups = () => {
@@ -35,39 +41,61 @@ function Usuarios(props) {
       .then((data) => {
         setGroups(data);
       })
-      .catch((err) => alert(err));
+      .catch((error) => setAlert({
+          type: 'alert-error',
+          title: 'Erro!',
+          body: error
+        }));
   };
 
   const deleteUser = (id) => {
     api.delete(`/api/user/delete/${id}/`)
       .then((res) => {
-        if (res.status === 204) alert("Usuario deletado!");
-        else alert("Falhou em deletar usuario.");
+        if (res.status === 204) setAlert({type: 'alert-success', title: 'Sucesso!', body: 'Usuario deletado com sucesso.'});
         getUsers();
       })
-      .catch((error) => alert(error));
+      .catch((error) => setAlert({
+          type: 'alert-error',
+          title: 'Erro!',
+          body: 'Falhou em deletar usuário.'+error
+        }));
   };
 
   const createUser = (e) => {
     e.preventDefault();
     const endpoint = selectedUserId ? `/api/user/${selectedUserId}/` : "/api/user/register/";
     const method = selectedUserId ? 'put' : 'post';
-
-    api[method](endpoint, { username, password, is_active, groups: [selectedGroup] })
-      .then((res) => {
-        if (res.status === 201 || res.status === 200) {
-          alert("Usuário salvo com sucesso!");
-          setSelectedUserId(null);
-          setUsername("");
-          setPassword("");
-          setIsActive(false);
-          setSelectedGroup('none');
-        } else {
-          alert("Falhou em salvar usuário.");
-        }
-        getUsers();
-      })
-      .catch((err) => alert(err));
+    if(selectedGroup !== 'none'){
+      api[method](endpoint, { username, password, is_active, groups: [selectedGroup] })
+        .then((res) => {
+          if (res.status === 201 || res.status === 200) {
+            setAlert({
+              type: 'alert-success',
+              title: 'Sucesso!',
+              body: 'Usuario salvo com sucesso.'
+            });
+            setSelectedUserId(null);
+            setUsername("");
+            setPassword("");
+            setIsActive(false);
+            setSelectedGroup('none');
+          }else{
+            setAlert({
+              type: 'alert-error',
+              title: 'Erro!',
+              body: 'Falhou em salvar usuário.'+res.statusText
+            })
+          }
+          getUsers();
+        })
+        .catch((error) => alert(error));
+    }else{
+      setAlert({
+        type: 'alert-info',
+        title: 'Atenção!',
+        body: 'Selecione um Tipo de Usuario.'
+      });
+    }
   };
 
   const clearForm = () => {
@@ -77,6 +105,11 @@ function Usuarios(props) {
     setIsActive(false);
     setSelectedGroup('none');
   }
+
+  // Função para fechar o alerta
+  const handleCloseAlert = () => {
+    setAlert(null);
+  };
 
   const editUser = (user) => {
     setSelectedUserId(user.id);
@@ -115,6 +148,15 @@ function Usuarios(props) {
                   <div className="card-header">
                     <h5 className="card-title">Informações</h5>
                     <hr />
+                    <div className="response">        
+                      {alert && (
+                        <Alert
+                          className={alert.type}
+                          message={alert}
+                          onClose={handleCloseAlert}
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="card-body">
                     <form onSubmit={createUser}>

@@ -44,6 +44,11 @@ const LoginScreen = () => {
       const response = await axios.post(`${await AsyncStorage.getItem('apiUrl')}/api/token/`, {
         username,
         password,
+      },
+      {
+        headers: {
+          'Client-Type': 'web'
+        }
       });
 
       const { access, refresh } = response.data;
@@ -53,7 +58,11 @@ const LoginScreen = () => {
       // Navegar para a tela inicial
       navigation.navigate('Home');
     } catch (error) {
-      Alert.alert('Erro', 'Credenciais inválidas ou erro ao conectar à API.');
+      if (error.response && error.response.data && error.response.data.detail) {
+          Alert.alert(error.response.data.detail);
+      } else {
+          Alert.alert('Erro', 'Erro ao conectar à API.');
+      }
     } finally {
       setLoading(false); // Ocultar o indicador de carregamento
     }

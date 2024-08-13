@@ -153,3 +153,12 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    "Request", 
+    "header", 
+    "field", 
+    "content-type",
+    "Client-Type",
+    "authorization",
+]

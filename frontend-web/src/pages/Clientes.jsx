@@ -1,12 +1,15 @@
 import NavSideBar from "../components/NavSideBar";
 import NavTopBar from "../components/NavTopBar";
 import { useState, useEffect } from "react";
+import Alert from "../components/Alert";
 import Table from '../components/Table';
 import api from "../api";
+import MaskedInput from 'react-text-mask';
 
 function Clientes(props){
     const { user} = props;
 
+    const [alert, setAlert] = useState(null);
     const [clients, setClients] = useState([]);
     const [nome, setNome] = useState("");
     const [data_nascimento, setDataNascimento] = useState("");
@@ -23,20 +26,32 @@ function Clientes(props){
             .then((res) => {
                 setClients(res.data);
             })
-            .catch((err) => alert(err));
+            .catch((error) => 
+            setAlert({
+                type: 'alert-error',
+                title: 'Erro!',
+                body: error
+            }));
     };
 
     const deleteClient = (id) => {
         api.delete(`/api/cliente/delete/${id}/`)
             .then((res) => {
                 if (res.status === 204) {
-                    alert("Cliente deletado!");
+                    setAlert({
+                        type: 'alert-success',
+                        title: 'Sucesso!',
+                        body: 'Cliente deletado com sucesso.'
+                    });
                     getClients();
-                } else {
-                    alert("Falhou em deletar cliente.");
-                }
+                } 
             })
-            .catch((error) => alert(error));
+            .catch((error) => 
+            setAlert({
+                type: 'alert-error',
+                title: 'Erro!',
+                body: 'Falhou em deletar usuário. Erro: '+error
+            }));
     };
 
     const createClient = (e) => {
@@ -47,18 +62,41 @@ function Clientes(props){
         api[method](endpoint, { nome, data_nascimento, cpf, ativo })
             .then((res) => {
                 if (res.status === 201 || res.status === 200) {
-                    alert("Cliente salvo com sucesso!");
+                    setAlert({
+                        type: 'alert-success',
+                        title: 'Sucesso!',
+                        body: 'Cliente salvo com sucesso.'
+                    });
                     setSelectedClientId(null);
                     setNome("");
                     setCpf("");
                     setDataNascimento("");
                     setAtivo(true);
                     getClients();
-                } else {
-                    alert("Falhou em salvar cliente.");
                 }
             })
-            .catch((err) => alert(err));
+            .catch((error) => {
+            if (error.response && error.response.data) {
+                const errorData = error.response.data;
+                let errorMessage = 'Falhou em salvar usuário. Erro:';
+
+                if (errorData.cpf) {
+                    errorMessage += ` ${errorData.cpf.join(' ')}`;
+                }
+
+                setAlert({
+                    type: 'alert-danger',
+                    title: 'Erro!',
+                    body: errorMessage
+                });
+            } else {
+                setAlert({
+                    type: 'alert-danger',
+                    title: 'Erro!',
+                    body: 'Falhou em salvar usuário. Erro desconhecido.'
+                });
+            }
+        });
     };
 
     const editClient = (client) => {
@@ -67,6 +105,10 @@ function Clientes(props){
         setDataNascimento(client.data_nascimento); 
         setCpf(client.cpf); 
         setAtivo(client.ativo);
+    };
+
+    const handleCloseAlert = () => {
+        setAlert(null);
     };
 
     const clearForm = () => {
@@ -107,6 +149,15 @@ function Clientes(props){
                                     <div className="card-header">
                                         <h5 className="card-title">Informações</h5>
                                         <hr/>
+                                        <div className="response">        
+                                            {alert && (
+                                                <Alert
+                                                    className={alert.type}
+                                                    message={alert}
+                                                    onClose={handleCloseAlert}
+                                                />
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="card-body">
                                         <form onSubmit={createClient}>
@@ -116,7 +167,7 @@ function Clientes(props){
                                             </div>
                                             <div className="mb-4">
                                                 <label className="form-label">CPF</label>
-                                                <input type="text" id="cpf" name="cpf" required onChange={(e) => setCpf(e.target.value)} value={cpf} className="form-control" placeholder="Cpf" />
+                                                <MaskedInput type="text" id="cpf" name="cpf" mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/,  '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]} guide={false} required onChange={(e) => setCpf(e.target.value)} value={cpf} className="form-control" placeholder="000.000.000-00" />
                                             </div>
                                             <div className="mb-4">
                                                 <label className="form-label">Data Nascimento</label>
