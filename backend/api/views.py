@@ -398,7 +398,7 @@ class CustomTokenObtainPairView(APIView):
         if client_type == 'web' and group.id in [2, 3]:
             return Response({'detail': 'Usuarios não Administrativos não podem acessar o web.'}, status=status.HTTP_403_FORBIDDEN)
         elif client_type == 'mobile' and group.id in [1]:
-            return Response({'detail': 'Usuarios Administrativos não podem acessar o web.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Usuarios Administrativos não podem acessar o mobile.'}, status=status.HTTP_403_FORBIDDEN)
         elif client_type == 'mobile' and group.id in [2, 3]:
             token = RefreshToken.for_user(user)
             return Response({

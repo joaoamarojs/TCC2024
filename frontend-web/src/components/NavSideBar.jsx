@@ -41,7 +41,7 @@ function NavSideBar(props) {
 
     return (
         <nav id="sidebar" className="sidebar js-sidebar">
-            <div className="sidebar-content js-simplebar">
+            <div className="sidebar-content js-simplebar" data-simplebar="init">
                 <a className='sidebar-brand' href='index.html'>
                     <span className="sidebar-brand-text align-middle">
                         <img style={{ display: 'flex', width: '215px' }} src="/img/logote.png" alt="TDM-Logo" />
@@ -60,7 +60,7 @@ function NavSideBar(props) {
                             <div className={`dropdown-menu dropdown-menu-start ${isDropdownOpen ? 'show' : ''}`}>
                                 <a className='dropdown-item' href=''><i className="align-middle me-1"></i> Perfil</a>
                                 <div className="dropdown-divider"></div>
-                                <a className="dropdown-item" href="logout">Sair</a>
+                                <a className="dropdown-item" href="#" onClick={(e) => handleSelectPage('logout', e)}>Sair</a>
                             </div>
                             <div className="sidebar-user-subtitle">Administrativo</div>
                         </div>

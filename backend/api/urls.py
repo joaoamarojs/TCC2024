@@ -30,5 +30,7 @@ urlpatterns = [
     path("user/delete/<int:pk>/", views.UserDeleteView.as_view(), name="delete-user"),
     path("user/<int:pk>/", views.UserUpdateView.as_view(), name="update-user"),
     path("user/", views.UserListView.as_view(), name="list-users"),
+    path("user/register/", views.CreateUserView.as_view(), name="register"),
+    path('user/profile/', views.UserProfileView.as_view(), name='user-profile'),
     path("groups/", views.GroupListView.as_view(), name="list-groups"),
 ]

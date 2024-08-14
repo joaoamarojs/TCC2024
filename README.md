@@ -57,19 +57,25 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
    DB_PORT=5432
    ```
 
-5. **Execute as Migrações**
+5. **Mude o atributo `DEBUG` para `False` em `settings.py`** 
+
+   ```bash
+   DEBUG = False
+   ```
+
+6. **Execute as Migrações**
 
    ```bash
    python manage.py migrate
    ```
 
-6. **Crie o usuario admin e os grupos de usuario**
+7. **Crie o usuario admin e os grupos de usuario**
 
    ```bash
    python manage.py create_initial_data
    ```
 
-7. **Inicie o Servidor**
+8. **Inicie o Servidor**
 
    ```bash
    python manage.py runserver 0.0.0.0:8000
