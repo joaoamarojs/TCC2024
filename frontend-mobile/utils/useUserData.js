@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ACCESS_TOKEN } from "../constants"
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 function useUserData() {
     const [user, setUser] = useState(null);
@@ -8,20 +9,16 @@ function useUserData() {
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const token = localStorage.getItem(ACCESS_TOKEN);
+            const savedUrl = await AsyncStorage.getItem('apiUrl');
+            const token = await AsyncStorage.getItem('accessToken');
             if (token) {
                 try {
-                    const response = await fetch('http://127.0.0.1:8000/api/user/profile/', {
+                    const response = await axios.get(`${await AsyncStorage.getItem('apiUrl')}/api/user/profile/`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
                     });
-                    if (response.ok) {
-                        const data = await response.json();
-                        setUser(data);
-                    } else {
-                        setError('Failed to fetch user data');
-                    }
+                    setUser(response.data);
                 } catch (error) {
                     setError(error.message);
                 } finally {
@@ -34,6 +31,7 @@ function useUserData() {
 
         fetchUserData();
     }, []);
+
     return { user, loading, error };
 }
 

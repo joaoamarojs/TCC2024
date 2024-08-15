@@ -59,7 +59,7 @@ function ProtectedRoute() {
                     const data = await response.json();
                     setUser(data);
                 } else {
-                    setError('Failed to fetch user data');
+                    setError('Falhou em capturar os dados do usuario');
                 }
             } catch (error) {
                 setError(error.message);

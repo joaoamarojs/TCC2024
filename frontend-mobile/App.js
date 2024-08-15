@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect } from 'react'; // Adicione esta linha
+import { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen';
