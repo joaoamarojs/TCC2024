@@ -15,6 +15,7 @@ function ProtectedRoute() {
     const [error, setError] = useState(null);
     const [isAuthorized, setIsAuthorized] = useState(null);
     const [selectedPage, setSelectedPage] = useState(null);
+
     function Logout() {
         localStorage.clear()
         return <Navigate to="/login" />;
@@ -118,7 +119,7 @@ function ProtectedRoute() {
             </div>
         </div>
     ) : (
-        <Navigate to="/login" />
+        <Logout />
     );
 }
 

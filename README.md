@@ -35,8 +35,8 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
 2. **Crie e Ative um Ambiente Virtual**
 
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # No Windows: venv\Scripts\activate
+   python -m venv env
+   source env/bin/activate  # No Windows: env\Scripts\activate
    ```
 
 3. **Instale as Dependências**
