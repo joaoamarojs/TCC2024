@@ -9,6 +9,7 @@ class Produto(models.Model):
     barraca = models.ForeignKey(Barraca, on_delete=models.RESTRICT, related_name="produtos")
     dataCriacao = models.DateTimeField(auto_now_add=True)
     tipo_produto = models.ForeignKey(Tipo_produto, on_delete=models.RESTRICT, related_name="produtos")
+    estocavel = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nome

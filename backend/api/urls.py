@@ -2,7 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("barraca/", views.BarracaListCreate.as_view(), name="barraca-list"),
+    path("barraca/", views.BarracaListCreate.as_view(), name="barraca-list-create"),
+    path("barraca/<int:pk>/", views.BarracaUpdate.as_view(), name="barraca-update"),
     path("barraca/delete/<int:pk>/", views.BarracaDelete.as_view(), name="delete-barraca"),
     path("barraca_festa/", views.Barraca_FestaListCreate.as_view(), name="barraca_festa-list"),
     path("barraca_festa/delete/<int:pk>/", views.Barraca_FestaDelete.as_view(), name="delete-barraca_festa"),
@@ -13,7 +14,8 @@ urlpatterns = [
     path("cliente/", views.ClienteListCreate.as_view(), name="cliente-list"),
     path("cliente/<int:pk>/", views.ClienteUpdateView.as_view(), name="update-cliente"),
     path("cliente/delete/<int:pk>/", views.ClienteDelete.as_view(), name="delete-cliente"),
-    path("colaborador/", views.ColaboradorListCreate.as_view(), name="colaborador-list"),
+    path("colaborador/", views.ColaboradorListCreate.as_view(), name="colaborador-list-create"),
+    path("colaborador/<int:pk>/", views.ColaboradorUpdate.as_view(), name="colaborador-update"),
     path("colaborador/delete/<int:pk>/", views.ColaboradorDelete.as_view(), name="delete-colaborador"),
     path("estoque/", views.EstoqueListCreate.as_view(), name="estoque-list"),
     path("estoque/delete/<int:pk>/", views.EstoqueDelete.as_view(), name="delete-estoque"),
@@ -23,14 +25,15 @@ urlpatterns = [
     path("movimentacao_barraca/delete/<int:pk>/", views.Movimentacao_BarracaDelete.as_view(), name="delete-movimentacao_barraca"),
     path("movimentacao_caixa/", views.Movimentacao_CaixaListCreate.as_view(), name="movimentacao_caixa-list"),
     path("movimentacao_caixa/delete/<int:pk>/", views.Movimentacao_CaixaDelete.as_view(), name="delete-movimentacao_caixa"),
-    path("produto/", views.ProdutoListCreate.as_view(), name="produto-list"),
+    path("produto/", views.ProdutoListCreate.as_view(), name="produto-list-create"),
+    path("produto/<int:pk>/", views.ProdutoUpdate.as_view(), name="produto-update"),
     path("produto/delete/<int:pk>/", views.ProdutoDelete.as_view(), name="delete-produto"),
     path("tipo_produto/", views.Tipo_produtoListCreate.as_view(), name="tipo_produto-list"),
+    path("tipo_produto/<int:pk>/", views.Tipo_produtoUpdate.as_view(), name="tipo_produto-update"),
     path("tipo_produto/delete/<int:pk>/", views.Tipo_produtoDelete.as_view(), name="delete-tipo_produto"),
     path("user/delete/<int:pk>/", views.UserDeleteView.as_view(), name="delete-user"),
     path("user/<int:pk>/", views.UserUpdateView.as_view(), name="update-user"),
-    path("user/", views.UserListView.as_view(), name="list-users"),
-    path("user/register/", views.CreateUserView.as_view(), name="register"),
+    path("user/", views.UserCreateList.as_view(), name="create-list-user"),
     path('user/profile/', views.UserProfileView.as_view(), name='user-profile'),
     path("groups/", views.GroupListView.as_view(), name="list-groups"),
 ]

@@ -59,6 +59,19 @@ class BarracaListCreate(generics.ListCreateAPIView):
         else:
             print(serializer.errors)
 
+class BarracaUpdate(generics.UpdateAPIView):
+    serializer_class = BarracaSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Barraca.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if not pk:
+            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)
+
 
 class BarracaDelete(generics.DestroyAPIView):
     serializer_class = BarracaSerializer
@@ -168,6 +181,20 @@ class ColaboradorListCreate(generics.ListCreateAPIView):
             serializer.save()
         else:
             print(serializer.errors)
+
+
+class ColaboradorUpdate(generics.UpdateAPIView):
+    serializer_class = ColaboradorSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if not pk:
+            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)
 
 
 class ColaboradorDelete(generics.DestroyAPIView):
@@ -290,6 +317,20 @@ class ProdutoListCreate(generics.ListCreateAPIView):
             print(serializer.errors)
 
 
+class ProdutoUpdate(generics.UpdateAPIView):
+    serializer_class = ProdutoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Produto.objects.filter()
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if not pk:
+            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)
+
+
 class ProdutoDelete(generics.DestroyAPIView):
     serializer_class = ProdutoSerializer
     permission_classes = [IsAuthenticated]
@@ -314,6 +355,20 @@ class Tipo_produtoListCreate(generics.ListCreateAPIView):
             print(serializer.errors)
 
 
+class Tipo_produtoUpdate(generics.UpdateAPIView):
+    serializer_class = Tipo_produtoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Tipo_produto.objects.filter()
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if not pk:
+            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)            
+
+
 class Tipo_produtoDelete(generics.DestroyAPIView):
     serializer_class = Tipo_produtoSerializer
     permission_classes = [IsAuthenticated]
@@ -323,10 +378,14 @@ class Tipo_produtoDelete(generics.DestroyAPIView):
         return Tipo_produto.objects.filter()
 
 
-class CreateUserView(generics.CreateAPIView):
+class UserCreateList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        
+        return User.objects.filter()
 
 
 class UserProfileView(generics.ListCreateAPIView):
@@ -336,15 +395,6 @@ class UserProfileView(generics.ListCreateAPIView):
         user = request.user
         serializer = UserProfileSerializer(user)
         return Response(serializer.data)
-    
-
-class UserListView(generics.ListAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        
-        return User.objects.filter()
 
 
 class UserUpdateView(generics.UpdateAPIView):

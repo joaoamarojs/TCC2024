@@ -98,6 +98,24 @@ function NavSideBar(props) {
                             <span className="align-middle">Clientes</span>
                         </a>
                     </li>
+                    <li className="sidebar-item">
+                        <a className='sidebar-link' href="#" onClick={(e) => handleSelectPage('barracas', e)}>
+                            <i className="align-middle me-2 fas fa-fw fa-store"></i>
+                            <span className="align-middle">Barracas</span>
+                        </a>
+                    </li>
+                    <li className="sidebar-item">
+                        <a className='sidebar-link' href="#" onClick={(e) => handleSelectPage('produtos', e)}>
+                            <i className="align-middle me-2 fas fa-fw fa-shopping-cart"></i>
+                            <span className="align-middle">Produtos</span>
+                        </a>
+                    </li>
+                    <li className="sidebar-item">
+                        <a className='sidebar-link' href="#" onClick={(e) => handleSelectPage('tipo_produto', e)}>
+                            <i className="align-middle me-2 fas fa-fw fa-tags"></i>
+                            <span className="align-middle">Tipos de Produtos</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>

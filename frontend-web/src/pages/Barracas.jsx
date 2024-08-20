@@ -2,26 +2,23 @@ import { useState, useEffect } from "react";
 import Alert from "../components/Alert";
 import Table from '../components/Table';
 import api from "../api";
-import MaskedInput from 'react-text-mask';
 
-function Clientes(){
+function Barracas(){
 
     const [alert, setAlert] = useState(null);
-    const [clients, setClients] = useState([]);
+    const [barracas, setBarracas] = useState([]);
     const [nome, setNome] = useState("");
-    const [data_nascimento, setDataNascimento] = useState("");
-    const [cpf, setCpf] = useState("");
-    const [ativo, setAtivo] = useState(true);
-    const [selectedClientId, setSelectedClientId] = useState(null);
+    const [ativo, setAtivo] = useState(false);
+    const [selectedBarracaId, setSelectedBarracaId] = useState(null);
 
     useEffect(() => {
-        getClients();
+        getBarracas();
     }, []);
 
-    const getClients = () => {
-        api.get("/api/cliente/")
+    const getBarracas = () => {
+        api.get("/api/barraca/")
             .then((res) => {
-                setClients(res.data);
+                setBarracas(res.data);
             })
             .catch((error) => 
             setAlert({
@@ -31,55 +28,49 @@ function Clientes(){
             }));
     };
 
-    const deleteClient = (id) => {
-        api.delete(`/api/cliente/delete/${id}/`)
+    const deleteBarraca = (id) => {
+        api.delete(`/api/barraca/delete/${id}/`)
             .then((res) => {
                 if (res.status === 204) {
                     setAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
-                        body: 'Cliente deletado com sucesso.'
+                        body: 'Barraca deletada com sucesso.'
                     });
-                    getClients();
+                    getBarracas();
                 } 
             })
             .catch((error) => 
             setAlert({
                 type: 'alert-error',
                 title: 'Erro!',
-                body: 'Falhou em deletar cliente. Erro: '+error
+                body: 'Falhou em deletar barraca. Erro: '+error
             }));
     };
 
-    const createClient = (e) => {
+    const createBarraca = (e) => {
         e.preventDefault();
-        const endpoint = selectedClientId ? `/api/cliente/${selectedClientId}/` : "/api/cliente/";
-        const method = selectedClientId ? 'put' : 'post';
+        const endpoint = selectedBarracaId ? `/api/barraca/${selectedBarracaId}/` : "/api/barraca/";
+        const method = selectedBarracaId ? 'put' : 'post';
 
-        api[method](endpoint, { nome, data_nascimento, cpf, ativo })
+        api[method](endpoint, { nome, ativo })
             .then((res) => {
                 if (res.status === 201 || res.status === 200) {
                     setAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
-                        body: 'Cliente salvo com sucesso.'
+                        body: 'Barraca salva com sucesso.'
                     });
-                    setSelectedClientId(null);
+                    setSelectedBarracaId(null);
                     setNome("");
-                    setCpf("");
-                    setDataNascimento("");
-                    setAtivo(true);
-                    getClients();
+                    setAtivo(false);
+                    getBarracas();
                 }
             })
             .catch((error) => {
             if (error.response && error.response.data) {
                 const errorData = error.response.data;
-                let errorMessage = 'Falhou em salvar cliente. Erro:';
-
-                if (errorData.cpf) {
-                    errorMessage += ` ${errorData.cpf.join(' ')}`;
-                }
+                let errorMessage = 'Falhou em salvar barraca. Erro:';
 
                 setAlert({
                     type: 'alert-danger',
@@ -90,18 +81,16 @@ function Clientes(){
                 setAlert({
                     type: 'alert-danger',
                     title: 'Erro!',
-                    body: 'Falhou em salvar cliente. Erro desconhecido.'
+                    body: 'Falhou em salvar barraca. Erro desconhecido.'
                 });
             }
         });
     };
 
-    const editClient = (client) => {
-        setSelectedClientId(client.id); 
-        setNome(client.nome);
-        setDataNascimento(client.data_nascimento); 
-        setCpf(client.cpf); 
-        setAtivo(client.ativo);
+    const editBarraca = (barraca) => {
+        setSelectedBarracaId(barraca.id); 
+        setNome(barraca.nome);
+        setAtivo(barraca.ativo);
     };
 
     const handleCloseAlert = () => {
@@ -109,30 +98,26 @@ function Clientes(){
     };
 
     const clearForm = () => {
-        setSelectedClientId(null);
+        setSelectedBarracaId(null);
         setNome("");
-        setCpf("");
-        setDataNascimento("");
-        setAtivo(true);
+        setAtivo(false);
     }
 
     const headers = [
         { label: 'Nome', key: 'nome' },
-        { label: 'Data Nascimento', key: 'data_nascimento' },
-        { label: 'Cpf', key: 'cpf' },
         { label: 'Actions', key: 'actions' }
     ];
 
     const actions = [
-        { icon: 'edit-2', func: (client) => editClient(client) },
-        { icon: 'trash', func: (client) => deleteClient(client.id) }
+        { icon: 'edit-2', func: (barraca) => editBarraca(barraca) },
+        { icon: 'trash', func: (barraca) => deleteBarraca(barraca.id) }
     ];
 
     return (
             <div className="container-fluid p-0">
                 <div className="row mb-2 mb-xl-3">
                     <div className="col-auto d-none d-sm-block">
-                        <h3>Clientes</h3>
+                        <h3>Barracas</h3>
                     </div>
                 </div>
                 <div className="row">
@@ -152,26 +137,18 @@ function Clientes(){
                                 </div>
                             </div>
                             <div className="card-body">
-                                <form onSubmit={createClient}>
+                                <form onSubmit={createBarraca}>
                                     <div className="mb-4">
                                         <label className="form-label">Nome</label>
                                         <input type="text" id="nome" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
                                     </div>
-                                    <div className="mb-4">
-                                        <label className="form-label">CPF</label>
-                                        <MaskedInput type="text" id="cpf" name="cpf" mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/,  '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]} guide={false} required onChange={(e) => setCpf(e.target.value)} value={cpf} className="form-control" placeholder="000.000.000-00" />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label className="form-label">Data Nascimento</label>
-                                        <input type="date" id="data_nascimento" name="data_nascimento" required onChange={(e) => setDataNascimento(e.target.value)} value={data_nascimento} className="form-control" />
-                                    </div>
                                     <div className="form-check form-switch mb-4">
-                                        <input className="form-check-input" type="checkbox" checked={ativo} onChange={() => setAtivo(!ativo)} />
+                                        <input className="form-check-input" type="checkbox" checked={ativo} onChange={() => setAtivo(!ativo)}/>
                                         <label className="form-check-label">Ativo</label>
                                     </div>
                                     <div className="mb-4">
                                         <button type="submit" className="btn btn-primary me-2">
-                                            {selectedClientId ? "Atualizar" : "Salvar"}
+                                            {selectedBarracaId ? "Atualizar" : "Salvar"}
                                         </button>
                                         <button type="reset" className="btn btn-primary me-2" onClick={clearForm}>Limpar</button>
                                     </div>                                       
@@ -183,7 +160,7 @@ function Clientes(){
                 <div className="row">
                     <div className="col-12 col-xl-6">
                         <div className="card">
-                            <Table headers={headers} data={clients} actions={actions} />
+                            <Table headers={headers} data={barracas} actions={actions} />
                         </div>
                     </div>
                 </div>
@@ -191,4 +168,4 @@ function Clientes(){
     );
 }
 
-export default Clientes;
+export default Barracas;

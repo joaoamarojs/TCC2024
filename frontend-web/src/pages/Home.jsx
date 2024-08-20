@@ -1,9 +1,6 @@
-import NavSideBar from "../components/NavSideBar";
-import NavTopBar from "../components/NavTopBar";
 import '../styles/Admin.css';
 
-function Home(props){
-    const { user } = props;
+function Home(){
 
     return <div className="container-fluid p-0">
                 <div className="row mb-2 mb-xl-3">

@@ -3,11 +3,14 @@ import { jwtDecode } from 'jwt-decode';
 import api from '../api';
 import { REFRESH_TOKEN, ACCESS_TOKEN } from '../constants';
 import { useState, useEffect } from 'react';
+import NavSideBar from './NavSideBar';
+import NavTopBar from './NavTopBar';
 import Home from '../pages/Home';
 import Usuarios from '../pages/Usuarios';
 import Clientes from '../pages/Clientes';
-import NavSideBar from './NavSideBar';
-import NavTopBar from './NavTopBar';
+import Tipo_produtos from '../pages/Tipo_produtos';
+import Barracas from '../pages/Barracas';
+import Produtos from '../pages/Produtos';
 
 function ProtectedRoute() {
     const [user, setUser] = useState(null);
@@ -88,11 +91,17 @@ function ProtectedRoute() {
     const renderPage = () => {
         switch (selectedPage) {
             case 'home':
-                return <Home user={user} />;
+                return <Home />;
             case 'usuarios':
-                return <Usuarios user={user} />;
+                return <Usuarios />;
             case 'clientes':
-                return <Clientes user={user} />;
+                return <Clientes />;
+            case 'produtos':
+                return <Produtos />    
+            case 'tipo_produto':
+                return <Tipo_produtos />;
+            case 'barracas':
+                return <Barracas />;
             case 'logout':
                 return <Logout />;  
             default:
@@ -104,8 +113,8 @@ function ProtectedRoute() {
         return <div>Carregando...</div>;
     }
 
-    if (error) {
-        return <div>Erro ao carregar dados do usuário: {error}</div>;
+    if (error && isAuthorized) {
+        return <div>Erro ao carregar dados do usuário: {error}. Por favor recarregue a pagina.</div>;
     }
 
     return isAuthorized ? (

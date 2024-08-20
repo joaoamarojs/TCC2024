@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
-import NavSideBar from "../components/NavSideBar";
-import NavTopBar from "../components/NavTopBar";
 import Alert from "../components/Alert";
 import Table from '../components/Table';
 import api from "../api";
 
-function Usuarios(props) {
-  const { user } = props;
+function Usuarios() {
 
   const [alert, setAlert] = useState(null);
   const [users, setUsers] = useState([]);
@@ -64,7 +61,7 @@ function Usuarios(props) {
 
   const createUser = (e) => {
     e.preventDefault();
-    const endpoint = selectedUserId ? `/api/user/${selectedUserId}/` : "/api/user/register/";
+    const endpoint = selectedUserId ? `/api/user/${selectedUserId}/` : "/api/user/";
     const method = selectedUserId ? 'put' : 'post';
     if(selectedGroup !== 'none'){
       api[method](endpoint, { username, password, is_active, groups: [selectedGroup] })

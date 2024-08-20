@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     groups = serializers.PrimaryKeyRelatedField(
         queryset=Group.objects.all(),
-        many=True  # Permite manipular vários grupos
+        many=True 
     )
     group_name = serializers.SerializerMethodField()
 
@@ -28,11 +28,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'groups', 'group_name')
 
     def get_group_name(self, obj):
-        return [group.name for group in obj.groups.all()]  # Retorna os nomes dos grupos
+        return [group.name for group in obj.groups.all()] 
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        groups = validated_data.pop('groups', [])  # Recebe os grupos como lista de IDs
+        groups = validated_data.pop('groups', [])
 
         user = User.objects.create_user(
             username=validated_data['username'],
@@ -45,19 +45,19 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
         if groups:
-            user.groups.set(groups)  # Define os grupos para o usuário
+            user.groups.set(groups) 
 
         return user
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
-        groups = validated_data.pop('groups', None)  # Recebe os grupos como lista de IDs
+        groups = validated_data.pop('groups', None)
 
         if password:
             instance.set_password(password)
 
         if groups is not None:
-            instance.groups.set(groups)  # Atualiza os grupos do usuário
+            instance.groups.set(groups)
 
         return super().update(instance, validated_data)
     
@@ -129,9 +129,12 @@ class Movimentacao_CaixaSerializer(serializers.ModelSerializer):
 
 
 class ProdutoSerializer(serializers.ModelSerializer):
+    barraca_nome = serializers.CharField(source='barraca.nome', read_only=True)
+    tipo_produto_nome = serializers.CharField(source='tipo_produto.nome', read_only=True)
+
     class Meta:
         model = Produto
-        fields = ["id", "nome", "barraca", "tipo_produto", "dataCriacao"]
+        fields = ['id', 'nome', 'barraca', 'barraca_nome', 'tipo_produto', 'tipo_produto_nome', 'dataCriacao', 'estocavel']
 
 
 class Tipo_produtoSerializer(serializers.ModelSerializer):
