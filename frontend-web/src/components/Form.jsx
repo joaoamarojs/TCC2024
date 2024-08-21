@@ -6,6 +6,7 @@ import LoadingIndicator from "./LoadingIndicator";
 import "../styles/Form.css"
 
 function Form(){
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState("");

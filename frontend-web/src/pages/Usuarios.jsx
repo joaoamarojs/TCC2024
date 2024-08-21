@@ -7,6 +7,8 @@ function Usuarios() {
 
   const [alert, setAlert] = useState(null);
   const [users, setUsers] = useState([]);
+  const [first_name, setFirst_Name] = useState("");
+  const [last_name, setLast_Name] = useState("")
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [is_active, setIsActive] = useState(false);
@@ -64,7 +66,7 @@ function Usuarios() {
     const endpoint = selectedUserId ? `/api/user/${selectedUserId}/` : "/api/user/";
     const method = selectedUserId ? 'put' : 'post';
     if(selectedGroup !== 'none'){
-      api[method](endpoint, { username, password, is_active, groups: [selectedGroup] })
+      api[method](endpoint, { username, password, first_name, last_name, is_active, groups: [selectedGroup] })
         .then((res) => {
           if (res.status === 201 || res.status === 200) {
             setAlert({
@@ -73,6 +75,8 @@ function Usuarios() {
               body: 'Usuario salvo com sucesso.'
             });
             setSelectedUserId(null);
+            setFirst_Name("");
+            setLast_Name("");
             setUsername("");
             setPassword("");
             setIsActive(false);
@@ -98,6 +102,8 @@ function Usuarios() {
 
   const clearForm = () => {
     setSelectedUserId(null);
+    setFirst_Name("");
+    setLast_Name("");
     setUsername("");
     setPassword("");
     setIsActive(false);
@@ -111,6 +117,8 @@ function Usuarios() {
 
   const editUser = (user) => {
     setSelectedUserId(user.id);
+    setFirst_Name(user.first_name);
+    setLast_Name(user.last_name);
     setUsername(user.username);
     setPassword("");
     setIsActive(user.is_active);
@@ -118,6 +126,8 @@ function Usuarios() {
   };
 
   const headers = [
+    { label: 'Nome', key: 'first_name' },
+    { label: 'Sobrenome', key: 'last_name' },
     { label: 'Usuario', key: 'username' },
     { label: 'Tipo', key: 'group_name' },
     { label: 'Actions', key: 'actions' }
@@ -153,6 +163,14 @@ function Usuarios() {
                   </div>
                   <div className="card-body">
                     <form onSubmit={createUser}>
+                      <div className="mb-4">
+                        <label className="form-label">Nome</label>
+                        <input type="text" id="first_name" name="first_name" required onChange={(e) => setFirst_Name(e.target.value)} value={first_name} className="form-control" placeholder="Nome"/>
+                      </div>
+                      <div className="mb-4">
+                        <label className="form-label">Sobrenome</label>
+                        <input type="text" id="last_name" name="last_name" required onChange={(e) => setLast_Name(e.target.value)} value={last_name} className="form-control" placeholder="Sobrenome"/>
+                      </div>
                       <div className="mb-4">
                         <label className="form-label">Usuario</label>
                         <input type="text" id="username" name="username" required onChange={(e) => setUsername(e.target.value)} value={username} className="form-control" placeholder="Usuario"/>

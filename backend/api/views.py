@@ -5,6 +5,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from .permissions import IsInGroup
 from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, ColaboradorSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models.barraca_festa import Barraca_Festa
@@ -20,10 +21,24 @@ from .models.movimentacao_caixa import Movimentacao_Caixa
 from .models.produto import Produto
 from .models.tipo_produto import Tipo_produto
 
+class AdminstrativoGroup(IsInGroup):
+    def __init__(self):
+        super().__init__('Administrativo')
+
+
+class BarracaGroup(IsInGroup):
+    def __init__(self):
+        super().__init__('Barraca')
+
+
+class CaixaGroup(IsInGroup):
+    def __init__(self):
+        super().__init__('Caixa')   
+
 
 class Barraca_FestaListCreate(generics.ListCreateAPIView):
     serializer_class = Barraca_FestaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -38,7 +53,7 @@ class Barraca_FestaListCreate(generics.ListCreateAPIView):
 
 class Barraca_FestaDelete(generics.DestroyAPIView):
     serializer_class = Barraca_FestaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -47,7 +62,7 @@ class Barraca_FestaDelete(generics.DestroyAPIView):
 
 class BarracaListCreate(generics.ListCreateAPIView):
     serializer_class = BarracaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -58,10 +73,11 @@ class BarracaListCreate(generics.ListCreateAPIView):
             serializer.save()
         else:
             print(serializer.errors)
+            
 
 class BarracaUpdate(generics.UpdateAPIView):
     serializer_class = BarracaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         return Barraca.objects.all()
@@ -75,7 +91,7 @@ class BarracaUpdate(generics.UpdateAPIView):
 
 class BarracaDelete(generics.DestroyAPIView):
     serializer_class = BarracaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -84,7 +100,7 @@ class BarracaDelete(generics.DestroyAPIView):
 
 class Caixa_FestaListCreate(generics.ListCreateAPIView):
     serializer_class = Caixa_FestaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -99,7 +115,7 @@ class Caixa_FestaListCreate(generics.ListCreateAPIView):
 
 class Caixa_FestaDelete(generics.DestroyAPIView):
     serializer_class = Caixa_FestaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -108,7 +124,7 @@ class Caixa_FestaDelete(generics.DestroyAPIView):
 
 class CartaoListCreate(generics.ListCreateAPIView):
     serializer_class = CartaoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -123,7 +139,7 @@ class CartaoListCreate(generics.ListCreateAPIView):
 
 class CartaoDelete(generics.DestroyAPIView):
     serializer_class = CartaoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -132,7 +148,7 @@ class CartaoDelete(generics.DestroyAPIView):
 
 class ClienteListCreate(generics.ListCreateAPIView):
     serializer_class = ClienteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -147,7 +163,7 @@ class ClienteListCreate(generics.ListCreateAPIView):
 
 class ClienteUpdateView(generics.UpdateAPIView):
     serializer_class = ClienteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         return Cliente.objects.all()
@@ -161,7 +177,7 @@ class ClienteUpdateView(generics.UpdateAPIView):
 
 class ClienteDelete(generics.DestroyAPIView):
     serializer_class = ClienteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -170,7 +186,7 @@ class ClienteDelete(generics.DestroyAPIView):
 
 class ColaboradorListCreate(generics.ListCreateAPIView):
     serializer_class = ColaboradorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -185,7 +201,7 @@ class ColaboradorListCreate(generics.ListCreateAPIView):
 
 class ColaboradorUpdate(generics.UpdateAPIView):
     serializer_class = ColaboradorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         return User.objects.all()
@@ -199,7 +215,7 @@ class ColaboradorUpdate(generics.UpdateAPIView):
 
 class ColaboradorDelete(generics.DestroyAPIView):
     serializer_class = ColaboradorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -208,7 +224,7 @@ class ColaboradorDelete(generics.DestroyAPIView):
 
 class EstoqueListCreate(generics.ListCreateAPIView):
     serializer_class = EstoqueSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -223,7 +239,7 @@ class EstoqueListCreate(generics.ListCreateAPIView):
 
 class EstoqueDelete(generics.DestroyAPIView):
     serializer_class = EstoqueSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -232,7 +248,7 @@ class EstoqueDelete(generics.DestroyAPIView):
 
 class FestaListCreate(generics.ListCreateAPIView):
     serializer_class = FestaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -247,7 +263,7 @@ class FestaListCreate(generics.ListCreateAPIView):
 
 class FestaDelete(generics.DestroyAPIView):
     serializer_class = FestaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -256,7 +272,7 @@ class FestaDelete(generics.DestroyAPIView):
 
 class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
     serializer_class = Movimentacao_BarracaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [BarracaGroup,CaixaGroup]
 
     def get_queryset(self):
         
@@ -271,7 +287,7 @@ class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
 
 class Movimentacao_BarracaDelete(generics.DestroyAPIView):
     serializer_class = Movimentacao_BarracaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [BarracaGroup,CaixaGroup]
 
     def get_queryset(self):
         
@@ -280,7 +296,7 @@ class Movimentacao_BarracaDelete(generics.DestroyAPIView):
 
 class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
     serializer_class = Movimentacao_CaixaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [BarracaGroup,CaixaGroup]
 
     def get_queryset(self):
         
@@ -295,7 +311,7 @@ class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
 
 class Movimentacao_CaixaDelete(generics.DestroyAPIView):
     serializer_class = Movimentacao_CaixaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [BarracaGroup,CaixaGroup]
 
     def get_queryset(self):
         
@@ -304,7 +320,7 @@ class Movimentacao_CaixaDelete(generics.DestroyAPIView):
 
 class ProdutoListCreate(generics.ListCreateAPIView):
     serializer_class = ProdutoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -319,7 +335,7 @@ class ProdutoListCreate(generics.ListCreateAPIView):
 
 class ProdutoUpdate(generics.UpdateAPIView):
     serializer_class = ProdutoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         return Produto.objects.filter()
@@ -333,7 +349,7 @@ class ProdutoUpdate(generics.UpdateAPIView):
 
 class ProdutoDelete(generics.DestroyAPIView):
     serializer_class = ProdutoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -342,7 +358,7 @@ class ProdutoDelete(generics.DestroyAPIView):
 
 class Tipo_produtoListCreate(generics.ListCreateAPIView):
     serializer_class = Tipo_produtoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -357,7 +373,7 @@ class Tipo_produtoListCreate(generics.ListCreateAPIView):
 
 class Tipo_produtoUpdate(generics.UpdateAPIView):
     serializer_class = Tipo_produtoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         return Tipo_produto.objects.filter()
@@ -371,7 +387,7 @@ class Tipo_produtoUpdate(generics.UpdateAPIView):
 
 class Tipo_produtoDelete(generics.DestroyAPIView):
     serializer_class = Tipo_produtoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -381,7 +397,7 @@ class Tipo_produtoDelete(generics.DestroyAPIView):
 class UserCreateList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         
@@ -399,7 +415,7 @@ class UserProfileView(generics.ListCreateAPIView):
 
 class UserUpdateView(generics.UpdateAPIView):
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         return User.objects.all()
@@ -413,7 +429,7 @@ class UserUpdateView(generics.UpdateAPIView):
 
 class UserDeleteView(generics.DestroyAPIView):
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
         

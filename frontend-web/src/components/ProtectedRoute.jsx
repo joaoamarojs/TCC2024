@@ -119,7 +119,7 @@ function ProtectedRoute() {
 
     return isAuthorized ? (
         <div className="wrapper">
-            <NavSideBar name={user?.username} onSelectPage={setSelectedPage} />
+            <NavSideBar name={user?.first_name} onSelectPage={setSelectedPage} />
             <div className="main">
                 <NavTopBar />
                 <main className="content">

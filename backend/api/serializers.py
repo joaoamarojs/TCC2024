@@ -63,9 +63,18 @@ class UserSerializer(serializers.ModelSerializer):
     
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    groups = serializers.PrimaryKeyRelatedField(
+        queryset=Group.objects.all(),
+        many=True 
+    )
+    group_name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'is_active']  
+        fields = ['id', 'first_name', 'username', 'groups', 'group_name', 'is_active']  
+
+    def get_group_name(self, obj):
+        return [group.name for group in obj.groups.all()] 
 
 
 class Barraca_FestaSerializer(serializers.ModelSerializer):
