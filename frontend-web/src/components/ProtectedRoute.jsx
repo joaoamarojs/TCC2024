@@ -11,6 +11,7 @@ import Clientes from '../pages/Clientes';
 import Tipo_produtos from '../pages/Tipo_produtos';
 import Barracas from '../pages/Barracas';
 import Produtos from '../pages/Produtos';
+import Evento from '../pages/Evento';
 
 function ProtectedRoute() {
     const [user, setUser] = useState(null);
@@ -51,23 +52,16 @@ function ProtectedRoute() {
     }, []);
 
     const fetchUserData = async () => {
-        const token = localStorage.getItem(ACCESS_TOKEN);
-        if (token) {
-            try {
-                const response = await fetch('http://127.0.0.1:8000/api/user/profile/', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setUser(data);
-                } else {
-                    setError('Falhou em capturar os dados do usuario');
-                }
-            } catch (error) {
-                setError(error.message);
+        try {
+            const response = await api.get('/api/user/profile/');
+            if (response.status === 200) {
+                const data = response.data
+                setUser(data);
+            } else {
+                setError('Falhou em capturar os dados do usuario');
             }
+        } catch (error) {
+            setError(error.message);
         }
     };
 
@@ -102,6 +96,8 @@ function ProtectedRoute() {
                 return <Tipo_produtos />;
             case 'barracas':
                 return <Barracas />;
+            case 'evento':
+                return <Evento />;
             case 'logout':
                 return <Logout />;  
             default:

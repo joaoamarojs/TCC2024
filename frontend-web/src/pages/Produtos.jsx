@@ -136,7 +136,7 @@ function Produtos() {
     { label: 'Produto', key: 'nome' },
     { label: 'Barraca', key: 'barraca_nome' },
     { label: 'Tipo', key: 'tipo_produto_nome' },
-    { label: 'Actions', key: 'actions' }
+    { label: 'Ações', key: 'actions' }
   ];
 
   const actions = [
@@ -152,7 +152,7 @@ function Produtos() {
               </div>
             </div>
             <div className="row">
-              <div className="col-sm-6">
+              <div className="col-12 col-xl-6">
                 <div className="card">
                   <div className="card-header">
                     <h5 className="card-title">Informações</h5>

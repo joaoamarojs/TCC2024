@@ -130,7 +130,7 @@ function Usuarios() {
     { label: 'Sobrenome', key: 'last_name' },
     { label: 'Usuario', key: 'username' },
     { label: 'Tipo', key: 'group_name' },
-    { label: 'Actions', key: 'actions' }
+    { label: 'Ações', key: 'actions' }
   ];
 
   const actions = [
@@ -146,7 +146,7 @@ function Usuarios() {
               </div>
             </div>
             <div className="row">
-              <div className="col-sm-6">
+              <div className="col-12 col-xl-6">
                 <div className="card">
                   <div className="card-header">
                     <h5 className="card-title">Informações</h5>

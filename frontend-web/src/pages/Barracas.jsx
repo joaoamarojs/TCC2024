@@ -105,7 +105,7 @@ function Barracas(){
 
     const headers = [
         { label: 'Nome', key: 'nome' },
-        { label: 'Actions', key: 'actions' }
+        { label: 'Ações', key: 'actions' }
     ];
 
     const actions = [
@@ -121,7 +121,7 @@ function Barracas(){
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-sm-6">
+                    <div className="col-12 col-xl-6">
                         <div className="card">
                             <div className="card-header">
                                 <h5 className="card-title">Informações</h5>
