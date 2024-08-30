@@ -2,26 +2,6 @@ import { useEffect, useState, useRef } from "react";
 
 function NavSideBar(props) {
 
-	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
-
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
-    };
-
-    const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-            setIsDropdownOpen(false);
-        }
-    };
-
-    useEffect(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
     const handleSelectPage = (page, event) => {
         event.preventDefault();
         if (props.onSelectPage) {
@@ -54,10 +34,10 @@ function NavSideBar(props) {
                             <img src="/img/avatar.jpg" className="avatar img-fluid rounded me-1" alt="Charles Hall" />
                         </div>
                         <div className="flex-grow-1 ps-2">
-                            <a className="sidebar-user-title dropdown-toggle" onClick={toggleDropdown} href="#" data-bs-toggle="dropdown">
+                            <a className="sidebar-user-title dropdown-toggle" href="#" data-bs-toggle="dropdown">
                                 {props.name}
                             </a>
-                            <div className={`dropdown-menu dropdown-menu-start ${isDropdownOpen ? 'show' : ''}`}>
+                            <div className='dropdown-menu dropdown-menu-start'>
                                 <a className='dropdown-item' href=''><i className="align-middle me-1"></i> Perfil</a>
                                 <div className="dropdown-divider"></div>
                                 <a className="dropdown-item" href="#" onClick={(e) => handleSelectPage('logout', e)}>Sair</a>
@@ -117,9 +97,9 @@ function NavSideBar(props) {
                         </a>
                     </li>
                     <li className="sidebar-item">
-                        <a className='sidebar-link' href="#" onClick={(e) => handleSelectPage('evento', e)}>
+                        <a className='sidebar-link' href="#" onClick={(e) => handleSelectPage('festa', e)}>
                             <i className="align-middle me-2 fas fa-fw fa-briefcase"></i>
-                            <span className="align-middle">Evento</span>
+                            <span className="align-middle">Festa</span>
                         </a>
                     </li>
                 </ul>

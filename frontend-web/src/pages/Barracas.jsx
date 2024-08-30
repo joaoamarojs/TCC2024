@@ -5,7 +5,7 @@ import api from "../api";
 
 function Barracas(){
 
-    const [alert, setAlert] = useState(null);
+    const [alerts, setAlerts] = useState([]);
     const [barracas, setBarracas] = useState([]);
     const [nome, setNome] = useState("");
     const [ativo, setAtivo] = useState(false);
@@ -15,14 +15,24 @@ function Barracas(){
         getBarracas();
     }, []);
 
+    const addAlert = (alert) => {
+        setAlerts(prevAlerts => [
+            ...prevAlerts,
+            { 
+                id: Date.now(), 
+                ...alert 
+            }
+        ]);
+    };
+
     const getBarracas = () => {
         api.get("/api/barraca/")
             .then((res) => {
                 setBarracas(res.data);
             })
             .catch((error) => 
-            setAlert({
-                type: 'alert-error',
+            addAlert({
+                type: 'alert-danger',
                 title: 'Erro!',
                 body: error
             }));
@@ -32,7 +42,7 @@ function Barracas(){
         api.delete(`/api/barraca/delete/${id}/`)
             .then((res) => {
                 if (res.status === 204) {
-                    setAlert({
+                    addAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
                         body: 'Barraca deletada com sucesso.'
@@ -41,8 +51,8 @@ function Barracas(){
                 } 
             })
             .catch((error) => 
-            setAlert({
-                type: 'alert-error',
+            addAlert({
+                type: 'alert-danger',
                 title: 'Erro!',
                 body: 'Falhou em deletar barraca. Erro: '+error
             }));
@@ -56,7 +66,7 @@ function Barracas(){
         api[method](endpoint, { nome, ativo })
             .then((res) => {
                 if (res.status === 201 || res.status === 200) {
-                    setAlert({
+                    addAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
                         body: 'Barraca salva com sucesso.'
@@ -72,13 +82,13 @@ function Barracas(){
                 const errorData = error.response.data;
                 let errorMessage = 'Falhou em salvar barraca. Erro:';
 
-                setAlert({
+                addAlert({
                     type: 'alert-danger',
                     title: 'Erro!',
                     body: errorMessage
                 });
             } else {
-                setAlert({
+                addAlert({
                     type: 'alert-danger',
                     title: 'Erro!',
                     body: 'Falhou em salvar barraca. Erro desconhecido.'
@@ -94,7 +104,7 @@ function Barracas(){
     };
 
     const handleCloseAlert = () => {
-        setAlert(null);
+        addAlert(null);
     };
 
     const clearForm = () => {
@@ -126,14 +136,14 @@ function Barracas(){
                             <div className="card-header">
                                 <h5 className="card-title">Informações</h5>
                                 <hr/>
-                                <div className="response">        
-                                    {alert && (
+                                <div className="response">
+                                    {alerts.map(alert => (
                                         <Alert
-                                            className={alert.type}
-                                            message={alert}
-                                            onClose={handleCloseAlert}
+                                            key={alert.id}
+                                            className={alert.type} // Adicione classes adicionais se necessário
+                                            message={{ title: alert.title, body: alert.body }}
                                         />
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                             <div className="card-body">

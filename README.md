@@ -55,6 +55,8 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
    DB_PWD=senha
    DB_HOST=localhost
    DB_PORT=5432
+
+   SENHA_FECHA_FESTA = 'senha_para_fechar_festa'
    ```
 
 5. **Mude o atributo `DEBUG` para `False` em `settings.py`** 

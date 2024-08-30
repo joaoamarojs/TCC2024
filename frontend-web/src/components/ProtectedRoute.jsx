@@ -11,7 +11,7 @@ import Clientes from '../pages/Clientes';
 import Tipo_produtos from '../pages/Tipo_produtos';
 import Barracas from '../pages/Barracas';
 import Produtos from '../pages/Produtos';
-import Evento from '../pages/Evento';
+import Festa from '../pages/Festa';
 
 function ProtectedRoute() {
     const [user, setUser] = useState(null);
@@ -96,8 +96,8 @@ function ProtectedRoute() {
                 return <Tipo_produtos />;
             case 'barracas':
                 return <Barracas />;
-            case 'evento':
-                return <Evento />;
+            case 'festa':
+                return <Festa />;
             case 'logout':
                 return <Logout />;  
             default:

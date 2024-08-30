@@ -6,7 +6,7 @@ import MaskedInput from 'react-text-mask';
 
 function Clientes(){
 
-    const [alert, setAlert] = useState(null);
+    const [alerts, setAlerts] = useState([]);
     const [clients, setClients] = useState([]);
     const [nome, setNome] = useState("");
     const [data_nascimento, setDataNascimento] = useState("");
@@ -18,14 +18,24 @@ function Clientes(){
         getClients();
     }, []);
 
+    const addAlert = (alert) => {
+        setAlerts(prevAlerts => [
+            ...prevAlerts,
+            { 
+                id: Date.now(), 
+                ...alert 
+            }
+        ]);
+    };
+
     const getClients = () => {
         api.get("/api/cliente/")
             .then((res) => {
                 setClients(res.data);
             })
             .catch((error) => 
-            setAlert({
-                type: 'alert-error',
+            addAlert({
+                type: 'alert-danger',
                 title: 'Erro!',
                 body: error
             }));
@@ -35,7 +45,7 @@ function Clientes(){
         api.delete(`/api/cliente/delete/${id}/`)
             .then((res) => {
                 if (res.status === 204) {
-                    setAlert({
+                    addAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
                         body: 'Cliente deletado com sucesso.'
@@ -44,8 +54,8 @@ function Clientes(){
                 } 
             })
             .catch((error) => 
-            setAlert({
-                type: 'alert-error',
+            addAlert({
+                type: 'alert-danger',
                 title: 'Erro!',
                 body: 'Falhou em deletar cliente. Erro: '+error
             }));
@@ -59,7 +69,7 @@ function Clientes(){
         api[method](endpoint, { nome, data_nascimento, cpf, ativo })
             .then((res) => {
                 if (res.status === 201 || res.status === 200) {
-                    setAlert({
+                    addAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
                         body: 'Cliente salvo com sucesso.'
@@ -81,13 +91,13 @@ function Clientes(){
                     errorMessage += ` ${errorData.cpf.join(' ')}`;
                 }
 
-                setAlert({
+                addAlert({
                     type: 'alert-danger',
                     title: 'Erro!',
                     body: errorMessage
                 });
             } else {
-                setAlert({
+                addAlert({
                     type: 'alert-danger',
                     title: 'Erro!',
                     body: 'Falhou em salvar cliente. Erro desconhecido.'
@@ -105,7 +115,7 @@ function Clientes(){
     };
 
     const handleCloseAlert = () => {
-        setAlert(null);
+        addAlert(null);
     };
 
     const clearForm = () => {
@@ -141,14 +151,14 @@ function Clientes(){
                             <div className="card-header">
                                 <h5 className="card-title">Informações</h5>
                                 <hr/>
-                                <div className="response">        
-                                    {alert && (
+                                <div className="response">
+                                    {alerts.map(alert => (
                                         <Alert
-                                            className={alert.type}
-                                            message={alert}
-                                            onClose={handleCloseAlert}
+                                            key={alert.id}
+                                            className={alert.type} // Adicione classes adicionais se necessário
+                                            message={{ title: alert.title, body: alert.body }}
                                         />
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                             <div className="card-body">

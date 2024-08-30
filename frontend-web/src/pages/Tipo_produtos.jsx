@@ -5,7 +5,7 @@ import api from "../api";
 
 function Tipo_produtos(){
 
-    const [alert, setAlert] = useState(null);
+    const [alerts, setAlerts] = useState([]);
     const [tipo_produtos, setTipo_produtos] = useState([]);
     const [nome, setNome] = useState("");
     const [selectedTipo_produtoId, setSelectedTipo_produtoId] = useState(null);
@@ -14,14 +14,24 @@ function Tipo_produtos(){
         getTipo_produtos();
     }, []);
 
+    const addAlert = (alert) => {
+        setAlerts(prevAlerts => [
+            ...prevAlerts,
+            { 
+                id: Date.now(), 
+                ...alert 
+            }
+        ]);
+    };
+
     const getTipo_produtos = () => {
         api.get("/api/tipo_produto/")
             .then((res) => {
                 setTipo_produtos(res.data);
             })
             .catch((error) => 
-            setAlert({
-                type: 'alert-error',
+            addAlert({
+                type: 'alert-danger',
                 title: 'Erro!',
                 body: error
             }));
@@ -31,7 +41,7 @@ function Tipo_produtos(){
         api.delete(`/api/tipo_produto/delete/${id}/`)
             .then((res) => {
                 if (res.status === 204) {
-                    setAlert({
+                    addAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
                         body: 'Tipo de Produto deletado com sucesso.'
@@ -40,8 +50,8 @@ function Tipo_produtos(){
                 } 
             })
             .catch((error) => 
-            setAlert({
-                type: 'alert-error',
+            addAlert({
+                type: 'alert-danger',
                 title: 'Erro!',
                 body: 'Falhou em deletar usuário. Erro: '+error
             }));
@@ -55,7 +65,7 @@ function Tipo_produtos(){
         api[method](endpoint, { nome })
             .then((res) => {
                 if (res.status === 201 || res.status === 200) {
-                    setAlert({
+                    addAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
                         body: 'Tipo de Produto salvo com sucesso.'
@@ -74,13 +84,13 @@ function Tipo_produtos(){
                     errorMessage += ` ${errorData.cpf.join(' ')}`;
                 }
 
-                setAlert({
+                addAlert({
                     type: 'alert-danger',
                     title: 'Erro!',
                     body: errorMessage
                 });
             } else {
-                setAlert({
+                addAlert({
                     type: 'alert-danger',
                     title: 'Erro!',
                     body: 'Falhou em salvar tipo_produto. Erro desconhecido.'
@@ -92,10 +102,6 @@ function Tipo_produtos(){
     const editTipo_produto = (tipo_produto) => {
         setSelectedTipo_produtoId(tipo_produto.id); 
         setNome(tipo_produto.nome);
-    };
-
-    const handleCloseAlert = () => {
-        setAlert(null);
     };
 
     const clearForm = () => {
@@ -126,14 +132,14 @@ function Tipo_produtos(){
                             <div className="card-header">
                                 <h5 className="card-title">Informações</h5>
                                 <hr/>
-                                <div className="response">        
-                                    {alert && (
+                                <div className="response">
+                                    {alerts.map(alert => (
                                         <Alert
-                                            className={alert.type}
-                                            message={alert}
-                                            onClose={handleCloseAlert}
+                                            key={alert.id}
+                                            className={alert.type} // Adicione classes adicionais se necessário
+                                            message={{ title: alert.title, body: alert.body }}
                                         />
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                             <div className="card-body">

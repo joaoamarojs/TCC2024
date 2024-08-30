@@ -5,7 +5,7 @@ import api from "../api";
 
 function Produtos() {
 
-  const [alert, setAlert] = useState(null);
+  const [alerts, setAlerts] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [nome, setNome] = useState("");
   const [selectedProdutoId, setSelectedProdutoId] = useState(null);
@@ -22,14 +22,24 @@ function Produtos() {
     return () => {};
   }, []);
 
+  const addAlert = (alert) => {
+      setAlerts(prevAlerts => [
+          ...prevAlerts,
+          { 
+              id: Date.now(), 
+              ...alert 
+          }
+      ]);
+  };
+
   const getProdutos = () => {
     api.get("/api/produto/")
       .then((res) => res.data)
       .then((data) => {
         setProdutos(data);
       })
-      .catch((error) => setAlert({
-          type: 'alert-error',
+      .catch((error) => addAlert({
+          type: 'alert-danger',
           title: 'Erro!',
           body: error
         }));
@@ -41,8 +51,8 @@ function Produtos() {
       .then((data) => {
         setTipo_produtos(data);
       })
-      .catch((error) => setAlert({
-          type: 'alert-error',
+      .catch((error) => addAlert({
+          type: 'alert-danger',
           title: 'Erro!',
           body: error
         }));
@@ -54,8 +64,8 @@ function Produtos() {
       .then((data) => {
         setBarracas(data);
       })
-      .catch((error) => setAlert({
-          type: 'alert-error',
+      .catch((error) => addAlert({
+          type: 'alert-danger',
           title: 'Erro!',
           body: error
         }));
@@ -64,11 +74,11 @@ function Produtos() {
   const deleteProduto = (id) => {
     api.delete(`/api/produto/delete/${id}/`)
       .then((res) => {
-        if (res.status === 204) setAlert({type: 'alert-success', title: 'Sucesso!', body: 'Produto deletado com sucesso.'});
+        if (res.status === 204) addAlert({type: 'alert-success', title: 'Sucesso!', body: 'Produto deletado com sucesso.'});
         getProdutos();
       })
-      .catch((error) => setAlert({
-          type: 'alert-error',
+      .catch((error) => addAlert({
+          type: 'alert-danger',
           title: 'Erro!',
           body: 'Falhou em deletar usuário.'+error
         }));
@@ -82,7 +92,7 @@ function Produtos() {
       api[method](endpoint, { nome,  barraca: parseInt(selectedBarraca, 10), tipo_produto: parseInt(selectedTipo_produto, 10), estocavel })
         .then((res) => {
           if (res.status === 201 || res.status === 200) {
-            setAlert({
+            addAlert({
               type: 'alert-success',
               title: 'Sucesso!',
               body: 'Produto salvo com sucesso.'
@@ -93,17 +103,17 @@ function Produtos() {
             setSelectedBarraca('none');
             setEstocavel(false);
           }else{
-            setAlert({
-              type: 'alert-error',
+            addAlert({
+              type: 'alert-danger',
               title: 'Erro!',
               body: 'Falhou em salvar produto.'+res.statusText
             })
           }
           getProdutos();
         })
-        .catch((error) => setAlert({ type: 'alert-error',title: 'Erro!',body: 'Falhou em salvar produto. '+error}));
+        .catch((error) => addAlert({ type: 'alert-danger',title: 'Erro!',body: 'Falhou em salvar produto. '+error}));
     }else{
-      setAlert({
+      addAlert({
         type: 'alert-info',
         title: 'Atenção!',
         body: 'Selecione um Tipo de Produto e Barraca.'
@@ -118,11 +128,6 @@ function Produtos() {
     setSelectedBarraca('none');
     setEstocavel(false);
   }
-
-  // Função para fechar o alerta
-  const handleCloseAlert = () => {
-    setAlert(null);
-  };
 
   const editProduto = (produto) => {
     setSelectedProdutoId(produto.id);
@@ -157,14 +162,14 @@ function Produtos() {
                   <div className="card-header">
                     <h5 className="card-title">Informações</h5>
                     <hr />
-                    <div className="response">        
-                      {alert && (
-                        <Alert
-                          className={alert.type}
-                          message={alert}
-                          onClose={handleCloseAlert}
-                        />
-                      )}
+                    <div className="response">
+                        {alerts.map(alert => (
+                            <Alert
+                                key={alert.id}
+                                className={alert.type} // Adicione classes adicionais se necessário
+                                message={{ title: alert.title, body: alert.body }}
+                            />
+                        ))}
                     </div>
                   </div>
                   <div className="card-body">

@@ -5,7 +5,7 @@ import api from "../api";
 
 function Usuarios() {
 
-  const [alert, setAlert] = useState(null);
+  const [alerts, setAlerts] = useState([]);
   const [users, setUsers] = useState([]);
   const [first_name, setFirst_Name] = useState("");
   const [last_name, setLast_Name] = useState("")
@@ -22,14 +22,24 @@ function Usuarios() {
     return () => {};
   }, []);
 
+  const addAlert = (alert) => {
+      setAlerts(prevAlerts => [
+          ...prevAlerts,
+          { 
+              id: Date.now(), 
+              ...alert 
+          }
+      ]);
+  };
+
   const getUsers = () => {
     api.get("/api/user/")
       .then((res) => res.data)
       .then((data) => {
         setUsers(data);
       })
-      .catch((error) => setAlert({
-          type: 'alert-error',
+      .catch((error) => addAlert({
+          type: 'alert-danger',
           title: 'Erro!',
           body: error
         }));
@@ -41,8 +51,8 @@ function Usuarios() {
       .then((data) => {
         setGroups(data);
       })
-      .catch((error) => setAlert({
-          type: 'alert-error',
+      .catch((error) => addAlert({
+          type: 'alert-danger',
           title: 'Erro!',
           body: error
         }));
@@ -51,11 +61,11 @@ function Usuarios() {
   const deleteUser = (id) => {
     api.delete(`/api/user/delete/${id}/`)
       .then((res) => {
-        if (res.status === 204) setAlert({type: 'alert-success', title: 'Sucesso!', body: 'Usuario deletado com sucesso.'});
+        if (res.status === 204) addAlert({type: 'alert-success', title: 'Sucesso!', body: 'Usuario deletado com sucesso.'});
         getUsers();
       })
-      .catch((error) => setAlert({
-          type: 'alert-error',
+      .catch((error) => addAlert({
+          type: 'alert-danger',
           title: 'Erro!',
           body: 'Falhou em deletar usuário.'+error
         }));
@@ -69,7 +79,7 @@ function Usuarios() {
       api[method](endpoint, { username, password, first_name, last_name, is_active, groups: [selectedGroup] })
         .then((res) => {
           if (res.status === 201 || res.status === 200) {
-            setAlert({
+            addAlert({
               type: 'alert-success',
               title: 'Sucesso!',
               body: 'Usuario salvo com sucesso.'
@@ -82,8 +92,8 @@ function Usuarios() {
             setIsActive(false);
             setSelectedGroup('none');
           }else{
-            setAlert({
-              type: 'alert-error',
+            addAlert({
+              type: 'alert-danger',
               title: 'Erro!',
               body: 'Falhou em salvar usuário.'+res.statusText
             })
@@ -92,7 +102,7 @@ function Usuarios() {
         })
         .catch((error) => alert(error));
     }else{
-      setAlert({
+      addAlert({
         type: 'alert-info',
         title: 'Atenção!',
         body: 'Selecione um Tipo de Usuario.'
@@ -109,11 +119,6 @@ function Usuarios() {
     setIsActive(false);
     setSelectedGroup('none');
   }
-
-  // Função para fechar o alerta
-  const handleCloseAlert = () => {
-    setAlert(null);
-  };
 
   const editUser = (user) => {
     setSelectedUserId(user.id);
@@ -151,14 +156,14 @@ function Usuarios() {
                   <div className="card-header">
                     <h5 className="card-title">Informações</h5>
                     <hr />
-                    <div className="response">        
-                      {alert && (
-                        <Alert
-                          className={alert.type}
-                          message={alert}
-                          onClose={handleCloseAlert}
-                        />
-                      )}
+                    <div className="response">
+                        {alerts.map(alert => (
+                            <Alert
+                                key={alert.id}
+                                className={alert.type} // Adicione classes adicionais se necessário
+                                message={{ title: alert.title, body: alert.body }}
+                            />
+                        ))}
                     </div>
                   </div>
                   <div className="card-body">

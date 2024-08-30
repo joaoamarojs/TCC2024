@@ -106,6 +106,7 @@ DATABASES = {
     }
 }
 
+SENHA_FECHA_FESTA = os.getenv("SENHA_FECHA_FESTA")
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

@@ -17,11 +17,7 @@ function Form(){
         setLoading(true);
 
         try {
-            const res = await api.post('/api/token/', { username, password }, {
-                headers: {
-                    'Client-Type': 'web'
-                }
-            });
+            const res = await api.post('/api/token/', { username, password });
 
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);

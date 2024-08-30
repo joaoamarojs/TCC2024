@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate
 from rest_framework import generics, status
@@ -251,14 +252,48 @@ class FestaListCreate(generics.ListCreateAPIView):
     permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
-        
-        return Festa.objects.filter()
+        return Festa.objects.all() 
 
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
+    def create(self, request, *args, **kwargs):
+        if Festa.objects.filter(fechada=False).exists():
+            return Response({"message": "Ainda possui festa em aberto."}, status=status.HTTP_404_NOT_FOUND)
+        
+        return super().create(request, *args, **kwargs)
+
+
+class FestaAtual(generics.GenericAPIView):
+    serializer_class = FestaSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+            if festa_atual:
+                serializer = self.get_serializer(festa_atual)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_404_NOT_FOUND)
+        except Festa.DoesNotExist:
+            return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_404_NOT_FOUND)            
+
+
+class FecharFesta(APIView):
+    def post(self, request, *args, **kwargs):
+        password = request.data.get('password')
+
+        if not password:
+            return Response({"message": "Senha não fornecida."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if password != settings.SENHA_FECHA_FESTA:
+            return Response({"message": "Senha inválida."}, status=status.HTTP_403_FORBIDDEN)
+
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+
+        if festa_atual:
+            festa_atual.fechada = True
+            festa_atual.save()
+            return Response({"message": "Festa fechada com sucesso."}, status=status.HTTP_200_OK)
         else:
-            print(serializer.errors)
+            return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class FestaDelete(generics.DestroyAPIView):
