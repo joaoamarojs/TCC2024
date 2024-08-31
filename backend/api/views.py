@@ -1,13 +1,17 @@
+from django.db import IntegrityError
+from django.forms import ValidationError
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 from .permissions import IsInGroup
-from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, ColaboradorSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, ProdutoSerializer, Tipo_produtoSerializer
+from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, ColaboradorSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, Produto_FestaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models.barraca_festa import Barraca_Festa
 from .models.barraca import Barraca
@@ -20,6 +24,7 @@ from .models.festa import Festa
 from .models.movimentacao_barraca import Movimentacao_Barraca
 from .models.movimentacao_caixa import Movimentacao_Caixa
 from .models.produto import Produto
+from .models.produto_festa import Produto_Festa
 from .models.tipo_produto import Tipo_produto
 
 class AdminstrativoGroup(IsInGroup):
@@ -42,15 +47,22 @@ class Barraca_FestaListCreate(generics.ListCreateAPIView):
     permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
-        
-        return Barraca_Festa.objects.filter()
+        try:
+            festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+            if festa_atual:
+                return Barraca_Festa.objects.filter(festa=festa_atual)
+            else:
+                return Barraca_Festa.objects.none()
+        except Festa.DoesNotExist:
+            return Barraca_Festa.objects.none()
 
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        if festa_atual:
+            serializer.save(festa=festa_atual)
         else:
-            print(serializer.errors)
-
+            raise ValidationError({"message": ["Nenhuma festa atual disponível para associar."]})
+        
 
 class Barraca_FestaDelete(generics.DestroyAPIView):
     serializer_class = Barraca_FestaSerializer
@@ -59,6 +71,15 @@ class Barraca_FestaDelete(generics.DestroyAPIView):
     def get_queryset(self):
         
         return Barraca_Festa.objects.filter()
+    
+
+class BarracaListActives(generics.ListAPIView):
+    serializer_class = BarracaSerializer
+    permission_classes = [AdminstrativoGroup]
+
+    def get_queryset(self):
+        
+        return Barraca.objects.filter(ativo=True)    
 
 
 class BarracaListCreate(generics.ListCreateAPIView):
@@ -86,7 +107,7 @@ class BarracaUpdate(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         pk = kwargs.get('pk', None)
         if not pk:
-            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({"message": "ID precisa estar preenchido para atualizar."})
         return super().update(request, *args, **kwargs)
 
 
@@ -104,14 +125,19 @@ class Caixa_FestaListCreate(generics.ListCreateAPIView):
     permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
-        
-        return Caixa_Festa.objects.filter()
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        return Caixa_Festa.objects.filter(festa=festa_atual) if festa_atual else Caixa_Festa.objects.none()
 
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            print(serializer.errors)
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        if not festa_atual:
+            raise ValidationError({"message": "Nenhuma festa atual disponível para associar."})
+        
+        user_caixa = serializer.validated_data.get('user_caixa')
+        if Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user_caixa).exists():
+            raise ValidationError({"message": "Este caixa já está associado à festa atual."})
+        
+        serializer.save(festa=festa_atual)
 
 
 class Caixa_FestaDelete(generics.DestroyAPIView):
@@ -172,7 +198,7 @@ class ClienteUpdateView(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         pk = kwargs.get('pk', None)
         if not pk:
-            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
         return super().update(request, *args, **kwargs)
 
 
@@ -210,7 +236,7 @@ class ColaboradorUpdate(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         pk = kwargs.get('pk', None)
         if not pk:
-            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
         return super().update(request, *args, **kwargs)
 
 
@@ -350,7 +376,70 @@ class Movimentacao_CaixaDelete(generics.DestroyAPIView):
 
     def get_queryset(self):
         
-        return Movimentacao_Caixa.objects.filter() 
+        return Movimentacao_Caixa.objects.filter()
+
+
+class Produto_FestaListCreate(generics.ListCreateAPIView):
+    serializer_class = Produto_FestaSerializer
+    permission_classes = [AdminstrativoGroup] 
+
+    def get_queryset(self):
+        festa_id = self.kwargs.get('festa_id')
+        if festa_id is not None:
+            return Produto_Festa.objects.filter(festa=festa_id)
+        return Produto_Festa.objects.none()
+
+    def post(self, request, *args, **kwargs):
+        festa_id = self.kwargs.get('festa_id')
+        produto_id = request.data.get('produto')
+        
+        if Produto_Festa.objects.filter(festa=festa_id, produto=produto_id).exists():
+            return Response(
+                {"message": "Produto já possui valor."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            return self.create(request, *args, **kwargs)
+        except IntegrityError:
+            return Response(
+                {"message": "Produto já possui valor."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+
+class Produto_FestaUpdate(generics.UpdateAPIView):
+    queryset = Produto_Festa.objects.all()
+    serializer_class = Produto_FestaSerializer
+    permission_classes = [AdminstrativoGroup] 
+
+    def get_object(self):
+        try:
+            return Produto_Festa.objects.get(pk=self.kwargs['pk'])
+        except ObjectDoesNotExist:
+            raise ValidationError({"message": "Produto não encontrado."})
+
+    def perform_update(self, serializer):
+        try:
+            serializer.save()
+        except ValidationError as e:
+            raise ValidationError({"message": e.message_dict})
+        
+
+class Produto_FestaDelete(generics.DestroyAPIView):
+    queryset = Produto_Festa.objects.all()
+    serializer_class = Produto_FestaSerializer
+    permission_classes = [AdminstrativoGroup]
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ObjectDoesNotExist:
+            return Response({"message": "Produto não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        except ValidationError as e:
+            return Response({"errors": e.message_dict}, status=status.HTTP_400_BAD_REQUEST)        
 
 
 class ProdutoListCreate(generics.ListCreateAPIView):
@@ -378,7 +467,7 @@ class ProdutoUpdate(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         pk = kwargs.get('pk', None)
         if not pk:
-            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
         return super().update(request, *args, **kwargs)
 
 
@@ -388,8 +477,24 @@ class ProdutoDelete(generics.DestroyAPIView):
 
     def get_queryset(self):
         
-        return Produto.objects.filter()        
+        return Produto.objects.filter()    
 
+
+class ProdutosFestaAtualList(generics.ListAPIView):
+    serializer_class = ProdutoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        try:
+            festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+            if festa_atual:
+                barracas_da_festa = Barraca_Festa.objects.filter(festa=festa_atual).values_list('barraca', flat=True)
+                return Produto.objects.filter(barraca__in=barracas_da_festa)
+            else:
+                return Produto.objects.none() 
+        except ObjectDoesNotExist:
+            return Produto.objects.none() 
+        
 
 class Tipo_produtoListCreate(generics.ListCreateAPIView):
     serializer_class = Tipo_produtoSerializer
@@ -416,7 +521,7 @@ class Tipo_produtoUpdate(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         pk = kwargs.get('pk', None)
         if not pk:
-            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
         return super().update(request, *args, **kwargs)            
 
 
@@ -458,7 +563,7 @@ class UserUpdateView(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         pk = kwargs.get('pk', None)
         if not pk:
-            return Response({"detail": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
         return super().update(request, *args, **kwargs)
     
 
@@ -468,7 +573,17 @@ class UserDeleteView(generics.DestroyAPIView):
 
     def get_queryset(self):
         
-        return User.objects.filter()    
+        return User.objects.filter()  
+
+
+class GroupUsersListView(APIView):
+    permission_classes = [AdminstrativoGroup]
+    
+    def get(self, request, pk, format=None):
+        group = get_object_or_404(Group, pk=pk)
+        users = User.objects.filter(groups=group, is_active=True)
+        serializer = UserProfileSerializer(users, many=True)
+        return Response(serializer.data) 
     
 
 class GroupListView(generics.ListAPIView):

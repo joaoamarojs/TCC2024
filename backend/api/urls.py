@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path("barraca/", views.BarracaListCreate.as_view(), name="barraca-list-create"),
+    path("barracas-ativas/", views.BarracaListActives.as_view(), name="barraca-list-ativas"),
     path("barraca/<int:pk>/", views.BarracaUpdate.as_view(), name="barraca-update"),
     path("barraca/delete/<int:pk>/", views.BarracaDelete.as_view(), name="delete-barraca"),
     path("barraca_festa/", views.Barraca_FestaListCreate.as_view(), name="barraca_festa-list"),
@@ -28,8 +29,13 @@ urlpatterns = [
     path("movimentacao_caixa/", views.Movimentacao_CaixaListCreate.as_view(), name="movimentacao_caixa-list"),
     path("movimentacao_caixa/delete/<int:pk>/", views.Movimentacao_CaixaDelete.as_view(), name="delete-movimentacao_caixa"),
     path("produto/", views.ProdutoListCreate.as_view(), name="produto-list-create"),
+    path("produto/festa_atual/", views.ProdutosFestaAtualList.as_view(), name="produtos-festa-atual-list"),
     path("produto/<int:pk>/", views.ProdutoUpdate.as_view(), name="produto-update"),
     path("produto/delete/<int:pk>/", views.ProdutoDelete.as_view(), name="delete-produto"),
+    path('produto_festa/', views.Produto_FestaListCreate.as_view(), name='produto-festa-list-create'),
+    path('produto_festa/<int:festa_id>/', views.Produto_FestaListCreate.as_view(), name='produtos-festa-list'),
+    path('produto_festa/<int:pk>/', views.Produto_FestaUpdate.as_view(), name='produto-festa-update'),
+    path('produto_festa/delete/<int:pk>/', views.Produto_FestaDelete.as_view(), name='produto-festa-delete'),
     path("tipo_produto/", views.Tipo_produtoListCreate.as_view(), name="tipo_produto-list"),
     path("tipo_produto/<int:pk>/", views.Tipo_produtoUpdate.as_view(), name="tipo_produto-update"),
     path("tipo_produto/delete/<int:pk>/", views.Tipo_produtoDelete.as_view(), name="delete-tipo_produto"),
@@ -38,4 +44,5 @@ urlpatterns = [
     path("user/", views.UserCreateList.as_view(), name="create-list-user"),
     path('user/profile/', views.UserProfileView.as_view(), name='user-profile'),
     path("groups/", views.GroupListView.as_view(), name="list-groups"),
+    path("groups/<int:pk>/users/", views.GroupUsersListView.as_view(), name="list-group-users"),
 ]

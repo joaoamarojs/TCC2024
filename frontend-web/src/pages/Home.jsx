@@ -1,21 +1,27 @@
 import { useState, useEffect } from "react";
 import api from "../api";
+import formatDate from "../formatDate";
 import '../styles/Admin.css';
 
 function Home(){
 
-    const [evento, setEvento] = useState(null);
+    const [festa, setFesta] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        getEvento();
+        getFesta();
     }, []);
 
-    const getEvento = () => {
-        api.get("/api/festa-atual/")
-            .then((res) => {
-                setEvento(res.data);
-            })
-            .catch((error) => alert(error));
+    const getFesta = async () => {
+        try {
+            const response = await api.get("/api/festa-atual/");
+            setFesta(response.data);
+            setError(null);
+        } catch (err) {
+            console.error(err);
+            setError(err.response.data.message || "Ocorreu um erro ao buscar a festa.");
+            setFesta(null);
+        }
     };
 
     return <div className="container-fluid p-0">
@@ -42,20 +48,20 @@ function Home(){
                                             </div>
                                             <div className="row">
                                                 <div className="col mt-0">
-                                                    {
-                                                    evento ? (
+                                                    {error ? (
+                                                        <span className="text-muted">{error}</span>
+                                                    ) : festa ? (
                                                         <>
                                                             <div className="mb-0">
-                                                                <span className="text-muted">Nome: {evento.nome}</span>
+                                                                <span className="text-muted">Nome: {festa.nome}</span>
                                                             </div>
                                                             <div className="mb-0">
-                                                                <span className="text-muted">Data de Início: {evento.data_inicio}</span>
+                                                                <span className="text-muted">Data de Início: {formatDate(festa.data_inicio)}</span>
                                                             </div>
                                                         </>
-                                                        ) : (
-                                                            <span className="text-muted">Carregando...</span>
-                                                        )
-                                                    }
+                                                    ) : (
+                                                        <span className="text-muted">Carregando...</span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

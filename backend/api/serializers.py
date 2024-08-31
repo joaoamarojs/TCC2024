@@ -11,16 +11,14 @@ from .models.festa import Festa
 from .models.movimentacao_barraca import Movimentacao_Barraca
 from .models.movimentacao_caixa import Movimentacao_Caixa
 from .models.produto import Produto
+from .models.produto_festa import Produto_Festa
 from .models.tipo_produto import Tipo_produto
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    groups = serializers.PrimaryKeyRelatedField(
-        queryset=Group.objects.all(),
-        many=True 
-    )
+    groups = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), many=True)
     group_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -28,30 +26,23 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'groups', 'group_name')
 
     def get_group_name(self, obj):
-        return [group.name for group in obj.groups.all()] 
+        return [group.name for group in obj.groups.all()]
 
     def create(self, validated_data):
         password = validated_data.pop('password')
         groups = validated_data.pop('groups', [])
-
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            password=password,
-            email=validated_data.get('email', ''),
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
-            is_active=validated_data.get('is_active', True),
-            is_staff=validated_data.get('is_staff', False),
-        )
-
+        user = User.objects.create_user(**validated_data)
+        user.set_password(password)
         if groups:
-            user.groups.set(groups) 
-
+            user.groups.set(groups)
         return user
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
         groups = validated_data.pop('groups', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
 
         if password:
             instance.set_password(password)
@@ -59,7 +50,8 @@ class UserSerializer(serializers.ModelSerializer):
         if groups is not None:
             instance.groups.set(groups)
 
-        return super().update(instance, validated_data)
+        instance.save()
+        return instance
     
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -78,11 +70,29 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class Barraca_FestaSerializer(serializers.ModelSerializer):
+    user_responsavel_username = serializers.SerializerMethodField()
+    barraca_nome = serializers.SerializerMethodField()
+
     class Meta:
         model = Barraca_Festa
-        fields = ["id", "barraca", "festa", "user_responsavel"]  
+        fields = ["id", "barraca", "barraca_nome", "festa", "user_responsavel", "user_responsavel_username"]
 
+    def get_user_responsavel_username(self, obj):
+        return obj.user_responsavel.username
 
+    def get_barraca_nome(self, obj):
+        return obj.barraca.nome
+
+    def validate(self, data):
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        if festa_atual:
+            user_responsavel = data.get('user_responsavel')
+            if Barraca_Festa.objects.filter(festa=festa_atual, user_responsavel=user_responsavel).exists():
+                raise serializers.ValidationError({"message": ["Este usuário já está associado a uma barraca na festa atual."]})
+        else:
+            raise serializers.ValidationError({"message": ["Nenhuma festa atual disponível para associar."]})
+        return data
+    
 class BarracaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barraca
@@ -90,9 +100,26 @@ class BarracaSerializer(serializers.ModelSerializer):
 
 
 class Caixa_FestaSerializer(serializers.ModelSerializer):
+    user_caixa_username = serializers.SerializerMethodField()
+
     class Meta:
         model = Caixa_Festa
-        fields = ["id", "festa", "user_caixa"]          
+        fields = ["id", "festa", "user_caixa", "user_caixa_username"]
+
+    def get_user_caixa_username(self, obj):
+        if isinstance(obj, Caixa_Festa):
+            return obj.user_caixa.username
+        return None
+
+    def validate(self, data):
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        if festa_atual:
+            user_caixa = data.get('user_caixa')
+            if Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user_caixa).exists():
+                raise serializers.ValidationError({"message": "Este caixa já está associado à festa atual."})
+        else:
+            raise serializers.ValidationError({"message": "Nenhuma festa atual disponível para associar."})
+        return data
         
 
 class CartaoSerializer(serializers.ModelSerializer):
@@ -102,9 +129,17 @@ class CartaoSerializer(serializers.ModelSerializer):
 
 
 class ClienteSerializer(serializers.ModelSerializer):
+    data_nascimento_formatada = serializers.SerializerMethodField()
+
     class Meta:
         model = Cliente
-        fields = ["id", "nome", "data_nascimento", "cpf", "ativo"]     
+        fields = ["id", "nome", "data_nascimento", "data_nascimento_formatada", "cpf", "ativo"]  
+
+    def get_data_nascimento_formatada(self, obj):
+        # Acessa a data_nascimento do objeto e formata
+        if obj.data_nascimento:
+            return obj.data_nascimento.strftime('%d/%m/%Y')
+        return None   
 
 
 class ColaboradorSerializer(serializers.ModelSerializer):
@@ -144,6 +179,13 @@ class ProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
         fields = ['id', 'nome', 'barraca', 'barraca_nome', 'tipo_produto', 'tipo_produto_nome', 'dataCriacao', 'estocavel']
+
+
+class Produto_FestaSerializer(serializers.ModelSerializer):
+    produto_nome = serializers.CharField(source='produto.nome', read_only=True)
+    class Meta:
+        model = Produto_Festa
+        fields = [ 'id', 'produto', 'produto_nome', 'festa', 'valor']        
 
 
 class Tipo_produtoSerializer(serializers.ModelSerializer):

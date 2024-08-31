@@ -176,7 +176,7 @@ function Produtos() {
                     <form onSubmit={createProduto}>
                       <div className="mb-4">
                         <label className="form-label">Nome</label>
-                        <input type="text" id="nome" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Produto"/>
+                        <input type="text" id="nome_produto" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Produto"/>
                       </div>
                       <div className="mb-4">
                         <label className="form-label">Barraca</label>

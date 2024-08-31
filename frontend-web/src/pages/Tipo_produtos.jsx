@@ -146,7 +146,7 @@ function Tipo_produtos(){
                                 <form onSubmit={createTipo_produto}>
                                     <div className="mb-4">
                                         <label className="form-label">Nome</label>
-                                        <input type="text" id="nome" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
+                                        <input type="text" id="nome_tipo_produto" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
                                     </div>
                                     <div className="mb-4">
                                         <button type="submit" className="btn btn-primary me-2">

@@ -128,7 +128,7 @@ function Clientes(){
 
     const headers = [
         { label: 'Nome', key: 'nome' },
-        { label: 'Data Nascimento', key: 'data_nascimento' },
+        { label: 'Data Nascimento', key: 'data_nascimento_formatada' },
         { label: 'Cpf', key: 'cpf' },
         { label: 'Ações', key: 'actions' }
     ];
@@ -165,7 +165,7 @@ function Clientes(){
                                 <form onSubmit={createClient}>
                                     <div className="mb-4">
                                         <label className="form-label">Nome</label>
-                                        <input type="text" id="nome" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
+                                        <input type="text" id="nome_cliente" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
                                     </div>
                                     <div className="mb-4">
                                         <label className="form-label">CPF</label>

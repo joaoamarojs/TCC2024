@@ -103,10 +103,6 @@ function Barracas(){
         setAtivo(barraca.ativo);
     };
 
-    const handleCloseAlert = () => {
-        addAlert(null);
-    };
-
     const clearForm = () => {
         setSelectedBarracaId(null);
         setNome("");
@@ -140,7 +136,7 @@ function Barracas(){
                                     {alerts.map(alert => (
                                         <Alert
                                             key={alert.id}
-                                            className={alert.type} // Adicione classes adicionais se necessário
+                                            className={alert.type}
                                             message={{ title: alert.title, body: alert.body }}
                                         />
                                     ))}
@@ -150,7 +146,7 @@ function Barracas(){
                                 <form onSubmit={createBarraca}>
                                     <div className="mb-4">
                                         <label className="form-label">Nome</label>
-                                        <input type="text" id="nome" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
+                                        <input type="text" id="nome_barraca" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
                                     </div>
                                     <div className="form-check form-switch mb-4">
                                         <input className="form-check-input" type="checkbox" checked={ativo} onChange={() => setAtivo(!ativo)}/>
