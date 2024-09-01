@@ -5,7 +5,6 @@ from .models.barraca import Barraca
 from .models.caixa_festa import Caixa_Festa
 from .models.cartao import Cartao
 from .models.cliente import Cliente
-from .models.colaborador import Colaborador
 from .models.estoque import Estoque
 from .models.festa import Festa
 from .models.movimentacao_barraca import Movimentacao_Barraca
@@ -140,12 +139,6 @@ class ClienteSerializer(serializers.ModelSerializer):
         if obj.data_nascimento:
             return obj.data_nascimento.strftime('%d/%m/%Y')
         return None   
-
-
-class ColaboradorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Colaborador
-        fields = ["id", "nome", "data_nascimento", "ativo"]  
 
 
 class EstoqueSerializer(serializers.ModelSerializer):

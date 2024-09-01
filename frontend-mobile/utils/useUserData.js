@@ -6,6 +6,7 @@ function useUserData() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [validationError, setValidationError] = useState(null); 
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -13,14 +14,27 @@ function useUserData() {
             const token = await AsyncStorage.getItem('accessToken');
             if (token) {
                 try {
-                    const response = await axios.get(`${await AsyncStorage.getItem('apiUrl')}/api/user/profile/`, {
+                    const response = await axios.get(`${savedUrl}/api/user/profile/`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
+                            'Client-Type': 'mobile',
                         },
                     });
-                    setUser(response.data);
+                    const userData = response.data;
+                    setUser(userData);
+
+                    await axios.post(`${savedUrl}/api/festa-atual/valida-user/`, {user_id: userData.id}, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Client-Type': 'mobile',
+                        },
+                    });
                 } catch (error) {
-                    setError(error.message);
+                    if (error.response && error.response.data && error.response.data.message) {
+                        setValidationError(error.response.data.message);
+                    } else {
+                        setError(error.message);
+                    }
                 } finally {
                     setLoading(false);
                 }
@@ -32,7 +46,7 @@ function useUserData() {
         fetchUserData();
     }, []);
 
-    return { user, loading, error };
+    return { user, loading, error, validationError };
 }
 
 export default useUserData;

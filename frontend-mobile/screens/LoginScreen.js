@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, Pressable } from 'react-native';
-import Modal from 'react-native-modal'; // Certifique-se de que a biblioteca está instalada e importada corretamente
+import Modal from 'react-native-modal'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
@@ -10,10 +10,9 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [apiUrl, setApiUrl] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false); // Estado para o carregamento
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
-  // Função para abrir o modal
   const openModal = async () => {
     const savedUrl = await AsyncStorage.getItem('apiUrl');
     if (savedUrl) {
@@ -22,12 +21,10 @@ const LoginScreen = () => {
     setModalVisible(true);
   };
 
-  // Função para fechar o modal
   const closeModal = () => {
     setModalVisible(false);
   };
 
-  // Função para salvar o endereço da API
   const saveApiUrl = async () => {
     if (!apiUrl) {
       Alert.alert('Erro', 'Por favor, insira um endereço de API válido.');
@@ -37,9 +34,8 @@ const LoginScreen = () => {
     closeModal();
   };
 
-  // Função para fazer login
   const handleLogin = async () => {
-    setLoading(true); // Mostrar o indicador de carregamento
+    setLoading(true);
     try {
       const response = await axios.post(`${await AsyncStorage.getItem('apiUrl')}/api/token/`, {
         username,
@@ -55,7 +51,6 @@ const LoginScreen = () => {
       await AsyncStorage.setItem('accessToken', access);
       await AsyncStorage.setItem('refreshToken', refresh);
 
-      // Navegar para a tela inicial
       navigation.navigate('Home');
     } catch (error) {
       if (error.response && error.response.data && error.response.data.detail) {
@@ -64,7 +59,7 @@ const LoginScreen = () => {
           Alert.alert('Erro', 'Erro ao conectar à API.');
       }
     } finally {
-      setLoading(false); // Ocultar o indicador de carregamento
+      setLoading(false);
     }
   };
 
@@ -91,7 +86,6 @@ const LoginScreen = () => {
         <Text style={styles.text}>API</Text>
       </Pressable>
       
-      {/* Indicador de Carregamento com Overlay */}
       <Modal
         isVisible={loading}
         transparent={true}
@@ -103,7 +97,6 @@ const LoginScreen = () => {
         </View>
       </Modal>
       
-      {/* Modal para configurar o endereço da API */}
       <Modal isVisible={modalVisible} onBackdropPress={closeModal}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Configurar Endereço da API</Text>
@@ -171,7 +164,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Overlay semitransparente
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: 'white',
@@ -197,7 +190,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modalButtonSpacing: {
-    marginHorizontal: 10, // Espaço entre os botões no modal
+    marginHorizontal: 10, 
   },
 });
 

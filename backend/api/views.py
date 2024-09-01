@@ -11,14 +11,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .permissions import IsInGroup
-from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, ColaboradorSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, Produto_FestaSerializer, ProdutoSerializer, Tipo_produtoSerializer
+from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, Produto_FestaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models.barraca_festa import Barraca_Festa
 from .models.barraca import Barraca
 from .models.caixa_festa import Caixa_Festa
 from .models.cartao import Cartao
 from .models.cliente import Cliente
-from .models.colaborador import Colaborador
 from .models.estoque import Estoque
 from .models.festa import Festa
 from .models.movimentacao_barraca import Movimentacao_Barraca
@@ -209,44 +208,6 @@ class ClienteDelete(generics.DestroyAPIView):
     def get_queryset(self):
         
         return Cliente.objects.filter()        
-
-
-class ColaboradorListCreate(generics.ListCreateAPIView):
-    serializer_class = ColaboradorSerializer
-    permission_classes = [AdminstrativoGroup]
-
-    def get_queryset(self):
-        
-        return Colaborador.objects.filter()
-
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            print(serializer.errors)
-
-
-class ColaboradorUpdate(generics.UpdateAPIView):
-    serializer_class = ColaboradorSerializer
-    permission_classes = [AdminstrativoGroup]
-
-    def get_queryset(self):
-        return User.objects.all()
-
-    def update(self, request, *args, **kwargs):
-        pk = kwargs.get('pk', None)
-        if not pk:
-            return Response({"message": "ID precisa estar preenchido para atualizar."}, status=status.HTTP_400_BAD_REQUEST)
-        return super().update(request, *args, **kwargs)
-
-
-class ColaboradorDelete(generics.DestroyAPIView):
-    serializer_class = ColaboradorSerializer
-    permission_classes = [AdminstrativoGroup]
-
-    def get_queryset(self):
-        
-        return Colaborador.objects.filter()
 
 
 class EstoqueListCreate(generics.ListCreateAPIView):
@@ -629,3 +590,30 @@ class CustomTokenObtainPairView(APIView):
             })
         else:
             return Response({'detail': 'Invalid client type.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class ValidaUser(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated] 
+    serializer_class = FestaSerializer
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({"message": "ID do usuário não fornecido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"message": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        if not festa_atual:
+            return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_404_NOT_FOUND)
+
+        is_responsavel_barraca = Barraca_Festa.objects.filter(festa=festa_atual, user_responsavel=user).exists()
+        is_responsavel_caixa = Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user).exists()
+
+        if is_responsavel_barraca or is_responsavel_caixa:
+            return Response({"message": "Usuário válido para a festa atual."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Usuário não está associado à festa atual."}, status=status.HTTP_404_NOT_FOUND)        

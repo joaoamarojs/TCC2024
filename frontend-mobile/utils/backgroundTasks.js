@@ -7,12 +7,13 @@ const TOKEN_REFRESH_TASK = 'TOKEN_REFRESH_TASK';
 
 TaskManager.defineTask(TOKEN_REFRESH_TASK, async () => {
   try {
+    const savedUrl = await AsyncStorage.getItem('apiUrl');
     const refreshToken = await AsyncStorage.getItem('refreshToken');
     if (!refreshToken) {
       return BackgroundFetch.Result.NoData;
     }
 
-    const response = await axios.post('http://127.0.0.1:8000/api/token/refresh/', {
+    const response = await axios.post(`${savedUrl}/api/token/refresh/`, {
       refresh: refreshToken,
     });
 
@@ -27,7 +28,7 @@ TaskManager.defineTask(TOKEN_REFRESH_TASK, async () => {
 
 export const registerBackgroundTasks = async () => {
   await BackgroundFetch.registerTaskAsync(TOKEN_REFRESH_TASK, {
-    minimumInterval: 1800, // 30 minutos
+    minimumInterval: 3600, // 60 minutos
     stopOnTerminate: false,
     startOnBoot: true,
   });
