@@ -103,7 +103,7 @@ function Usuarios() {
         .catch((error) => alert(error));
     }else{
       addAlert({
-        type: 'alert-info',
+        type: 'alert-warning',
         title: 'Atenção!',
         body: 'Selecione um Tipo de Usuario.'
       });
@@ -168,22 +168,34 @@ function Usuarios() {
                   </div>
                   <div className="card-body">
                     <form onSubmit={createUser}>
-                      <div className="mb-4">
-                        <label className="form-label">Nome</label>
-                        <input type="text" id="first_name" name="first_name" required onChange={(e) => setFirst_Name(e.target.value)} value={first_name} className="form-control" placeholder="Nome"/>
+                      <div className="row">
+                        <div className="col-md-6">
+                          <div className="mb-4">
+                            <label className="form-label">Nome</label>
+                            <input type="text" id="first_name" name="first_name" required onChange={(e) => setFirst_Name(e.target.value)} value={first_name} className="form-control" placeholder="Nome"/>
+                          </div>
+                        </div>
+                        <div className="col-md-6">                          
+                          <div className="mb-4">
+                            <label className="form-label">Sobrenome</label>
+                            <input type="text" id="last_name" name="last_name" required onChange={(e) => setLast_Name(e.target.value)} value={last_name} className="form-control" placeholder="Sobrenome"/>
+                          </div>
+                        </div>
                       </div>
-                      <div className="mb-4">
-                        <label className="form-label">Sobrenome</label>
-                        <input type="text" id="last_name" name="last_name" required onChange={(e) => setLast_Name(e.target.value)} value={last_name} className="form-control" placeholder="Sobrenome"/>
-                      </div>
-                      <div className="mb-4">
-                        <label className="form-label">Usuario</label>
-                        <input type="text" id="username" name="username" required onChange={(e) => setUsername(e.target.value)} value={username} className="form-control" placeholder="Usuario"/>
-                      </div>
-                      <div className="mb-4">
-                        <label className="form-label">Password</label>
-                        <input type="password" id="password" name="password" required onChange={(e) => setPassword(e.target.value)} value={password} className="form-control" placeholder="Senha"/>
-                      </div>
+                      <div className="row">
+                        <div className="col-md-6">
+                          <div className="mb-4">
+                            <label className="form-label">Usuario</label>
+                            <input type="text" id="username" name="username" required onChange={(e) => setUsername(e.target.value)} value={username} className="form-control" placeholder="Usuario"/>
+                          </div>
+                        </div>
+                        <div className="col-md-6">                          
+                          <div className="mb-4">
+                            <label className="form-label">Password</label>
+                            <input type="password" id="password" name="password" required onChange={(e) => setPassword(e.target.value)} value={password} className="form-control" placeholder="Senha"/>
+                          </div>
+                        </div>
+                      </div>                   
                       <div className="mb-4">
                         <label className="form-label">Tipo Usuario</label>
                         <select className="form-select" value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>

@@ -49,65 +49,79 @@ function Festa(){
     };
 
     const getBarracas = async () => {
-        try {
-            const response = await api.get("/api/barracas-ativas/");
-            setBarracas(response.data);
-        } catch (err) {
-            console.error(err);
+        if(festa){
+            try {
+                const response = await api.get("/api/barracas-ativas/");
+                setBarracas(response.data);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
     const getCaixas = async () => {
-        try {
-            const response = await api.get(`/api/groups/3/users/`);
-            setCaixas(response.data);
-        } catch (err) {
-            console.error(err);
+        if(festa){
+            try {
+                const response = await api.get(`/api/groups/3/users/`);
+                setCaixas(response.data);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
     const getBarracasUsuarios = async () => {
-        try {
-            const response = await api.get(`/api/groups/2/users/`);
-            setBarracasUsuarios(response.data);
-        } catch (err) {
-            console.error(err);
+        if(festa){
+            try {
+                const response = await api.get(`/api/groups/2/users/`);
+                setBarracasUsuarios(response.data);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
     const getBarracasFesta = async () => {
-        try {
-            const response = await api.get("/api/barraca_festa/");
-            setBarracasFesta(response.data);
-        } catch (err) {
-            console.error(err);
+        if(festa){
+            try {
+                const response = await api.get("/api/barraca_festa/");
+                setBarracasFesta(response.data);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
     const getCaixasFesta = async () => {
-        try {
-            const response = await api.get(`/api/caixa_festa/`);
-            setCaixasFesta(response.data);
-        } catch (err) {
-            console.error(err);
+        if(festa){
+            try {
+                const response = await api.get(`/api/caixa_festa/`);
+                setCaixasFesta(response.data);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
     const getProdutos = async () => {
-        try {
-            const response = await api.get(`/api/produto/festa_atual/`);
-            setProdutos(response.data);
-        } catch (err) {
-            console.error(err);
+        if(festa){
+            try {
+                const response = await api.get(`/api/produto/festa_atual/`);
+                setProdutos(response.data);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
     const getProdutos_Festa = async () => {
-        try {
-            const response = await api.get(`/api/produto_festa/${festa.id}/`);
-            setProdutos_Festa(response.data);
-        } catch (err) {
-            console.error(err);
+        if(festa){
+            try {
+                const response = await api.get(`/api/produto_festa/${festa.id}/`);
+                setProdutos_Festa(response.data);
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
     
@@ -161,6 +175,7 @@ function Festa(){
 
     const handleSubmitFesta = async (e) => {
         e.preventDefault();
+        
         try {
             await api.post('/api/festa/', formData);
             addAlert({ type: 'alert-success', title: 'Sucesso!', body:  'Festa iniciada com sucesso!' });
@@ -236,41 +251,52 @@ function Festa(){
     };
 
     const handleAddBarraca = async (e) => {
-        console.log('wqeweqwe')
         e.preventDefault();
-        try {
-            await api.post('/api/barraca_festa/', { barraca: parseInt(selectedBarraca, 10), user_responsavel: parseInt(selectedUserResponsavel, 10), festa: festa.id });
-            addAlertBarraca({ type: 'alert-success', title: 'Sucesso!', body: 'Usuario adicionado a barraca adicionada com sucesso!' });
-            getBarracas();
-            getBarracasFesta();
-            getBarracasUsuarios();
-        } catch (error) {
-            console.log(error.response.data.message)
-            addAlertBarraca({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar a barraca. Erro: '+error.response.data.message  });
+        if(selectedBarraca !== null || selectedUserResponsavel !== null){
+            try {
+                await api.post('/api/barraca_festa/', { barraca: parseInt(selectedBarraca, 10), user_responsavel: parseInt(selectedUserResponsavel, 10), festa: festa.id });
+                addAlertBarraca({ type: 'alert-success', title: 'Sucesso!', body: 'Usuario adicionado a barraca adicionada com sucesso!' });
+                getBarracas();
+                getBarracasFesta();
+                getBarracasUsuarios();
+            } catch (error) {
+                console.log(error.response.data.message)
+                addAlertBarraca({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar a barraca. Erro: '+error.response.data.message  });
+            }
+        }else{
+            addAlertBarraca({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
         }
     };
 
     const handleAddCaixa = async (e) => {
         e.preventDefault();
-        try {
-            await api.post('/api/caixa_festa/', { user_caixa: parseInt(selectedCaixa, 10), festa: festa.id });
-            addAlertCaixa({ type: 'alert-success', title: 'Sucesso!', body: 'Caixa adicionado com sucesso!' });
-            getCaixas();
-            getCaixasFesta();
-        } catch (error) {
-            addAlertCaixa({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar a caixa. Erro: '+error.response.data.message  });
+        if(selectedCaixa !== null){
+            try {
+                await api.post('/api/caixa_festa/', { user_caixa: parseInt(selectedCaixa, 10), festa: festa.id });
+                addAlertCaixa({ type: 'alert-success', title: 'Sucesso!', body: 'Caixa adicionado com sucesso!' });
+                getCaixas();
+                getCaixasFesta();
+            } catch (error) {
+                addAlertCaixa({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar a caixa. Erro: '+error.response.data.message  });
+            }
+        }else{
+            addAlertCaixa({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
         }
     };
 
     const handleAddValorProduto = async (e) => {
         e.preventDefault();
-        try {
-            await api.post('/api/produto_festa/', { produto: parseInt(selectedProduto, 10), valor: valor,festa: festa.id });
-            addAlertProdutos({ type: 'alert-success', title: 'Sucesso!', body: 'Valor adicionado com sucesso!' });
-            getProdutos();
-            getProdutos_Festa();
-        } catch (error) {
-            addAlertProdutos({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar valor. Erro: '+error.response.data.message  });
+        if(selectedProduto !== null){
+            try {
+                await api.post('/api/produto_festa/', { produto: parseInt(selectedProduto, 10), valor: valor,festa: festa.id });
+                addAlertProdutos({ type: 'alert-success', title: 'Sucesso!', body: 'Valor adicionado com sucesso!' });
+                getProdutos();
+                getProdutos_Festa();
+            } catch (error) {
+                addAlertProdutos({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar valor. Erro: '+error.response.data.message  });
+            }
+        }else{
+            addAlertProdutos({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
         }
     };
 
@@ -417,7 +443,7 @@ function Festa(){
                                     </div>
                                     <div className="mb-4">
                                         <label className="form-label">Barracas</label>
-                                        <select className="form-select" onChange={(e) => setSelectedBarraca(e.target.value)}>
+                                        <select className="form-select" required onChange={(e) => setSelectedBarraca(e.target.value)}>
                                             <option value='none'>Selecione uma Barraca</option>
                                             {barracas.map(barraca => (
                                                 <option key={barraca.id} value={barraca.id}>{barraca.nome}</option>
@@ -426,7 +452,7 @@ function Festa(){
                                     </div>
                                     <div className="mb-4">
                                         <label className="form-label">Responsavel</label>
-                                        <select className="form-select" onChange={(e) => setSelectedUserResponsavel(e.target.value)}>
+                                        <select className="form-select" required onChange={(e) => setSelectedUserResponsavel(e.target.value)}>
                                             <option value='none'>Selecione um Responsavel</option>
                                             {barracasUsuarios.map(user => (
                                                 <option key={user.id} value={user.id}>{user.username}</option>
@@ -459,7 +485,7 @@ function Festa(){
                                     </div>
                                     <div className="mb-4">
                                         <label className="form-label">Caixas</label>
-                                        <select className="form-select" onChange={(e) => setSelectedCaixa(e.target.value)}>
+                                        <select className="form-select" required onChange={(e) => setSelectedCaixa(e.target.value)}>
                                             <option value='none'>Selecione um Usuario</option>
                                             {caixas.map(caixa => (
                                                 <option key={caixa.id} value={caixa.id}>{caixa.username}</option>
@@ -492,7 +518,7 @@ function Festa(){
                                     </div>
                                     <div className="mb-4">
                                         <label className="form-label">Produtos</label>
-                                        <select className="form-select" onChange={(e) => setSelectedProduto(e.target.value)}>
+                                        <select className="form-select" required onChange={(e) => setSelectedProduto(e.target.value)}>
                                             <option value='none'>Selecione um Produto</option>
                                             {produtos.map(produto => (
                                                 <option key={produto.id} value={produto.id}>{produto.nome}</option>

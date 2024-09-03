@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import useUserData from '../utils/useUserData';
 
 const HomeScreen = () => {
@@ -43,9 +43,13 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <Button title="NOVA VENDA" color="#28a745" onPress={() => {}} />
+          <Pressable style={styles.button}>
+            <Text style={styles.text}>NOVA VENDA</Text>
+          </Pressable>
         {showDevolverCreditos && (
-          <Button title="DEVOLVER CRÉDITOS" color="#28a745" onPress={() => {}} />
+          <Pressable style={styles.button}>
+            <Text style={styles.text}>DEVOLVER CRÉDITOS</Text>
+          </Pressable>
         )}
       </View>
     </View>
@@ -77,6 +81,16 @@ const styles = StyleSheet.create({
     flexDirection: 'column', 
     justifyContent: 'space-between',
     height: 100,
+  },
+  button: {
+    alignItems: 'center',
+    marginVertical: 10,
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 4,
+    elevation: 3,
+    backgroundColor: '#07DF12',
   },
 });
 

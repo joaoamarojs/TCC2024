@@ -114,7 +114,7 @@ function Produtos() {
         .catch((error) => addAlert({ type: 'alert-danger',title: 'Erro!',body: 'Falhou em salvar produto. '+error}));
     }else{
       addAlert({
-        type: 'alert-info',
+        type: 'alert-warning',
         title: 'Atenção!',
         body: 'Selecione um Tipo de Produto e Barraca.'
       });
@@ -178,23 +178,29 @@ function Produtos() {
                         <label className="form-label">Nome</label>
                         <input type="text" id="nome_produto" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Produto"/>
                       </div>
-                      <div className="mb-4">
-                        <label className="form-label">Barraca</label>
-                        <select className="form-select" value={selectedBarraca} onChange={(e) => setSelectedBarraca(e.target.value)}>
-                            <option value='none'>Barraca</option>
-                            {barracas.map((barraca) => (
-                                <option key={barraca.id} value={barraca.id}>{barraca.nome}</option>
-                            ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label className="form-label">Tipo Produto</label>
-                        <select className="form-select" value={selectedTipo_produto} onChange={(e) => setSelectedTipo_produto(e.target.value)}>
-                            <option value='none'>Tipo_Produto</option>
-                            {tipo_produtos.map((tipo_produto) => (
-                                <option key={tipo_produto.id} value={tipo_produto.id}>{tipo_produto.nome}</option>
-                            ))}
-                        </select>
+                      <div className="row">
+                        <div className="col-md-6">
+                          <div className="mb-4">
+                            <label className="form-label">Barraca</label>
+                            <select className="form-select" value={selectedBarraca} onChange={(e) => setSelectedBarraca(e.target.value)}>
+                                <option value='none'>Barraca</option>
+                                {barracas.map((barraca) => (
+                                    <option key={barraca.id} value={barraca.id}>{barraca.nome}</option>
+                                ))}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <div className="mb-4">
+                            <label className="form-label">Tipo Produto</label>
+                            <select className="form-select" value={selectedTipo_produto} onChange={(e) => setSelectedTipo_produto(e.target.value)}>
+                                <option value='none'>Tipo_Produto</option>
+                                {tipo_produtos.map((tipo_produto) => (
+                                    <option key={tipo_produto.id} value={tipo_produto.id}>{tipo_produto.nome}</option>
+                                ))}
+                            </select>
+                          </div>
+                        </div>
                       </div>
                       <div className="form-check form-switch mb-4">
                         <input className="form-check-input" type="checkbox" checked={estocavel} onChange={() => setEstocavel(!estocavel)}/>

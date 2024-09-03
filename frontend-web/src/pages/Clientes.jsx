@@ -167,14 +167,20 @@ function Clientes(){
                                         <label className="form-label">Nome</label>
                                         <input type="text" id="nome_cliente" name="nome" required onChange={(e) => setNome(e.target.value)} value={nome} className="form-control" placeholder="Nome" />
                                     </div>
-                                    <div className="mb-4">
-                                        <label className="form-label">CPF</label>
-                                        <MaskedInput type="text" id="cpf" name="cpf" mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/,  '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]} guide={false} required onChange={(e) => setCpf(e.target.value)} value={cpf} className="form-control" placeholder="000.000.000-00" />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label className="form-label">Data Nascimento</label>
-                                        <input type="date" id="data_nascimento" name="data_nascimento" required onChange={(e) => setDataNascimento(e.target.value)} value={data_nascimento} className="form-control" />
-                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <div className="mb-4">
+                                                <label className="form-label">CPF</label>
+                                                <MaskedInput type="text" id="cpf" name="cpf" mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/,  '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]} guide={false} required onChange={(e) => setCpf(e.target.value)} value={cpf} className="form-control" placeholder="000.000.000-00" />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-6">
+                                            <div className="mb-4">
+                                                <label className="form-label">Data Nascimento</label>
+                                                <input type="date" id="data_nascimento" name="data_nascimento" required onChange={(e) => setDataNascimento(e.target.value)} value={data_nascimento} className="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>                    
                                     <div className="form-check form-switch mb-4">
                                         <input className="form-check-input" type="checkbox" checked={ativo} onChange={() => setAtivo(!ativo)} />
                                         <label className="form-check-label">Ativo</label>
