@@ -102,6 +102,12 @@ function NavSideBar(props) {
                             <span className="align-middle">Festa</span>
                         </a>
                     </li>
+                    <li className="sidebar-item">
+                        <a className='sidebar-link' href="#" onClick={(e) => handleSelectPage('cartoes', e)}>
+                            <i className="align-middle me-2 fas fa-fw fa-credit-card"></i>
+                            <span className="align-middle">Cartões</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>

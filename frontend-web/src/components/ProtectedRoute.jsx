@@ -12,6 +12,7 @@ import Tipo_produtos from '../pages/Tipo_produtos';
 import Barracas from '../pages/Barracas';
 import Produtos from '../pages/Produtos';
 import Festa from '../pages/Festa';
+import Cartoes from '../pages/Cartoes';
 
 function ProtectedRoute() {
     const [user, setUser] = useState(null);
@@ -98,6 +99,8 @@ function ProtectedRoute() {
                 return <Barracas />;
             case 'festa':
                 return <Festa />;
+            case 'cartoes':
+                return <Cartoes />;
             case 'logout':
                 return <Logout />;  
             default:
@@ -106,7 +109,19 @@ function ProtectedRoute() {
     };
 
     if (loading) {
-        return <div>Carregando...</div>;
+        return <div className='container-fluid vh-100 d-flex justify-content-center align-items-center'>
+                    <div className="mb-2">
+                        <div className="spinner-grow text-dark me-2" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <div className="spinner-grow text-primary me-2" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <div className="spinner-grow text-secondary me-2" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>;
     }
 
     if (error && isAuthorized) {

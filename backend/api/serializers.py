@@ -122,9 +122,13 @@ class Caixa_FestaSerializer(serializers.ModelSerializer):
         
 
 class CartaoSerializer(serializers.ModelSerializer):
+    cliente_nome = serializers.SerializerMethodField()
     class Meta:
         model = Cartao
-        fields = ["id", "cliente", "ativo"]      
+        fields = ["id", "cliente", "cliente_nome", "ativo"]  
+
+    def get_cliente_nome(self, obj):
+        return obj.cliente.nome        
 
 
 class ClienteSerializer(serializers.ModelSerializer):
@@ -135,7 +139,6 @@ class ClienteSerializer(serializers.ModelSerializer):
         fields = ["id", "nome", "data_nascimento", "data_nascimento_formatada", "cpf", "ativo"]  
 
     def get_data_nascimento_formatada(self, obj):
-        # Acessa a data_nascimento do objeto e formata
         if obj.data_nascimento:
             return obj.data_nascimento.strftime('%d/%m/%Y')
         return None   
@@ -176,9 +179,17 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
 class Produto_FestaSerializer(serializers.ModelSerializer):
     produto_nome = serializers.CharField(source='produto.nome', read_only=True)
+    valor_formatado = serializers.SerializerMethodField()
     class Meta:
         model = Produto_Festa
-        fields = [ 'id', 'produto', 'produto_nome', 'festa', 'valor']        
+        fields = [ 'id', 'produto', 'produto_nome', 'festa', 'valor', 'valor_formatado']  
+
+    def get_valor_formatado(self, obj):
+        if obj.valor:
+            valorf = f'R$ {obj.valor:,.2f}'
+            valorf = valorf.replace('.', 'X').replace(',', '.').replace('X', ',')
+            return valorf
+        return None             
 
 
 class Tipo_produtoSerializer(serializers.ModelSerializer):

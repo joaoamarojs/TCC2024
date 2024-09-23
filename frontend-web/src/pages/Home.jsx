@@ -43,7 +43,7 @@ function Home(){
                                                 </div>
 
                                                 <div className="col-auto">
-                                                    <div className="stat text-primary"></div>
+                                                    <div className="stat text-primary"><i className="align-middle far fa-fw fa-gem"></i></div>
                                                 </div>
                                             </div>
                                             <div className="row">

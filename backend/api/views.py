@@ -60,7 +60,7 @@ class Barraca_FestaListCreate(generics.ListCreateAPIView):
         if festa_atual:
             serializer.save(festa=festa_atual)
         else:
-            raise ValidationError({"message": ["Nenhuma festa atual disponível para associar."]})
+            raise ValidationError({"message": ["Nenhuma festa atual disponível para associar."]})      
         
 
 class Barraca_FestaDelete(generics.DestroyAPIView):
@@ -161,6 +161,20 @@ class CartaoListCreate(generics.ListCreateAPIView):
             serializer.save()
         else:
             print(serializer.errors)
+
+
+class CartaoUpdate(generics.UpdateAPIView):
+    serializer_class = CartaoSerializer
+    permission_classes = [AdminstrativoGroup]
+
+    def get_queryset(self):
+        return Cartao.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if not pk:
+            raise ValidationError({"message": "ID precisa estar preenchido para atualizar."})
+        return super().update(request, *args, **kwargs)
 
 
 class CartaoDelete(generics.DestroyAPIView):
