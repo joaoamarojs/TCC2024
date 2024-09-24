@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group
+from api.models import Cliente
 
 class Command(BaseCommand):
-    help = 'Cria o usuario admin e os grupos de usuario'
+    help = 'Cria o usuário admin, os grupos de usuário e um cliente a classificar'
 
     def handle(self, *args, **kwargs):
         # Criar o usuário admin
@@ -33,3 +34,22 @@ class Command(BaseCommand):
         admin_group = Group.objects.get(name='Administrativo')
         user.groups.add(admin_group)
         self.stdout.write(self.style.SUCCESS(f'Usuário admin adicionado ao grupo "{admin_group.name}".'))
+
+        # Criar cliente com CPF válido, mas inexistente
+        nome_cliente = 'A classificar'
+        data_nascimento = '2000-01-01'
+        cpf_valido = '123.456.789-00'
+
+        cliente = Cliente(nome=nome_cliente, data_nascimento=data_nascimento, cpf=cpf_valido)
+        cliente.save()
+        self.stdout.write(self.style.SUCCESS(f'Cliente "{nome_cliente}" criado com CPF "{cpf_valido}".'))
+
+    def calcular_digitos_verificadores(self, cpf):
+        # Calcula os dois dígitos verificadores de um CPF
+        soma1 = sum(int(cpf[i]) * (10 - i) for i in range(9))
+        digito1 = (soma1 * 10 % 11) % 10
+
+        soma2 = sum(int(cpf[i]) * (11 - i) for i in range(10))
+        digito2 = (soma2 * 10 % 11) % 10
+
+        return f"{digito1}{digito2}"

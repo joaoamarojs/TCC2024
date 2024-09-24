@@ -1,3 +1,5 @@
+import os
+import json
 from django.db import IntegrityError
 from django.forms import ValidationError
 from django.shortcuts import render
@@ -13,6 +15,7 @@ from django.shortcuts import get_object_or_404
 from .permissions import IsInGroup
 from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, Produto_FestaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.http import JsonResponse
 from .models.barraca_festa import Barraca_Festa
 from .models.barraca import Barraca
 from .models.caixa_festa import Caixa_Festa
@@ -25,6 +28,8 @@ from .models.movimentacao_caixa import Movimentacao_Caixa
 from .models.produto import Produto
 from .models.produto_festa import Produto_Festa
 from .models.tipo_produto import Tipo_produto
+
+JSON_FILE_PATH = 'config_cartao.json'
 
 class AdminstrativoGroup(IsInGroup):
     def __init__(self):
@@ -153,14 +158,26 @@ class CartaoListCreate(generics.ListCreateAPIView):
     permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
-        
         return Cartao.objects.filter()
 
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            print(serializer.errors)
+    def post(self, request, *args, **kwargs):
+        quantidade = request.data.get('quantidade')
+
+        # Verifique se a quantidade é um número válido
+        if not quantidade or not isinstance(quantidade, int) or quantidade <= 0:
+            return Response({'error': 'A quantidade deve ser um número inteiro maior que zero.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Criar cartões para o cliente com ID 1
+        cliente_id = 1
+        novos_cartoes_ids = []
+        ativo = True;
+
+        for _ in range(quantidade):
+            cartao = Cartao(cliente_id=cliente_id,ativo=ativo)
+            cartao.save()
+            novos_cartoes_ids.append(cartao.id)
+
+        return Response({'novos_cartoes_ids': novos_cartoes_ids}, status=status.HTTP_201_CREATED)
 
 
 class CartaoUpdate(generics.UpdateAPIView):
@@ -630,4 +647,40 @@ class ValidaUser(generics.GenericAPIView):
         if is_responsavel_barraca or is_responsavel_caixa:
             return Response({"message": "Usuário válido para a festa atual."}, status=status.HTTP_200_OK)
         else:
-            return Response({"message": "Usuário não está associado à festa atual."}, status=status.HTTP_404_NOT_FOUND)        
+            return Response({"message": "Usuário não está associado à festa atual."}, status=status.HTTP_404_NOT_FOUND) 
+
+
+class ConfigCartao(generics.GenericAPIView):
+    permission_classes = [AdminstrativoGroup] 
+
+    def get(self, request, *args, **kwargs):
+        dados = []
+        if os.path.exists(JSON_FILE_PATH):
+            with open(JSON_FILE_PATH, 'r') as f:
+                dados = json.load(f)
+        
+        return JsonResponse(dados, safe=False)
+
+    def post(self, request, *args, **kwargs):
+        titulo = request.data.get('titulo')
+        fonte = request.data.get('fonte')
+        tamanho = request.data.get('tamanho')
+        cor = request.data.get('cor')
+        cor_cartao = request.data.get('cor_cartao')
+
+        if not all([titulo, fonte, tamanho, cor, cor_cartao]):
+            return JsonResponse({'status': 'erro', 'mensagem': 'Todos os campos são obrigatórios!'}, status=400)
+
+        dados = {
+            'titulo': titulo,
+            'fonte': fonte,
+            'tamanho': tamanho,
+            'cor': cor,
+            'cor_cartao': cor_cartao,
+        }
+
+        # Salvar dados no JSON, substituindo o conteúdo anterior
+        with open(JSON_FILE_PATH, 'w') as f:
+            json.dump(dados, f, indent=4)
+
+        return JsonResponse({'status': 'sucesso', 'mensagem': 'Dados salvos com sucesso!'})

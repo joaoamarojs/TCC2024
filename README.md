@@ -28,7 +28,7 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
 1. **Baixe o Repositório**
 
    ```bash
-   git clone <URL_DO_REPOSITORIO>
+   git clone https://github.com/joaoamarojs/TCC2024.git
    cd backend
    ```
 
@@ -96,10 +96,9 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
 
 ### Passos
 
-1. **Baixe o Repositório**
+1. **Acesse a pasta do frontend web**
 
    ```bash
-   git clone <URL_DO_REPOSITORIO>
    cd frontend-web
    ```
 
@@ -147,10 +146,9 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
 
 ### Passos
 
-1. **Baixe o Repositório**
+1. **Acesse a pasta do frontend mobile**
 
    ```bash
-   git clone <URL_DO_REPOSITORIO>
    cd frontend-mobile
    ```
 

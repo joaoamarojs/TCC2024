@@ -42,4 +42,5 @@ urlpatterns = [
     path('user/profile/', views.UserProfileView.as_view(), name='user-profile'),
     path("groups/", views.GroupListView.as_view(), name="list-groups"),
     path("groups/<int:pk>/users/", views.GroupUsersListView.as_view(), name="list-group-users"),
+    path("config_cartao/", views.ConfigCartao.as_view(), name="create-list-config-cartão"),
 ]
