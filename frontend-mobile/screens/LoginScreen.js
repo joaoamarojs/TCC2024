@@ -4,8 +4,11 @@ import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import { useContext } from 'react';
+import { AuthContext } from '../utils/AuthContext';
 
 const LoginScreen = () => {
+  const { login } = useContext(AuthContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [apiUrl, setApiUrl] = useState('');
@@ -40,16 +43,14 @@ const LoginScreen = () => {
       const response = await axios.post(`${await AsyncStorage.getItem('apiUrl')}/api/token/`, {
         username,
         password,
-      },
-      {
+      }, {
         headers: {
           'Client-Type': 'mobile'
         }
       });
 
-      const { access, refresh } = response.data;
-      await AsyncStorage.setItem('accessToken', access);
-      await AsyncStorage.setItem('refreshToken', refresh);
+      const { access } = response.data;
+      await login(access);
 
       navigation.navigate('Home');
     } catch (error) {

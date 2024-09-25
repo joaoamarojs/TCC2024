@@ -669,7 +669,7 @@ class ConfigCartao(generics.GenericAPIView):
         cor_cartao = request.data.get('cor_cartao')
 
         if not all([titulo, fonte, tamanho, cor, cor_cartao]):
-            return JsonResponse({'status': 'erro', 'mensagem': 'Todos os campos são obrigatórios!'}, status=400)
+            return JsonResponse({'status': 'erro', 'message': 'Todos os campos são obrigatórios!'}, status=400)
 
         dados = {
             'titulo': titulo,
@@ -683,4 +683,4 @@ class ConfigCartao(generics.GenericAPIView):
         with open(JSON_FILE_PATH, 'w') as f:
             json.dump(dados, f, indent=4)
 
-        return JsonResponse({'status': 'sucesso', 'mensagem': 'Dados salvos com sucesso!'})
+        return JsonResponse({'status': 'sucesso', 'message': 'Dados salvos com sucesso!'})

@@ -1,34 +1,25 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import createApi from './api';
 
 function useUserData() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [validationError, setValidationError] = useState(null); 
+    const [validationError, setValidationError] = useState(null);
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const savedUrl = await AsyncStorage.getItem('apiUrl');
             const token = await AsyncStorage.getItem('accessToken');
             if (token) {
                 try {
-                    const response = await axios.get(`${savedUrl}/api/user/profile/`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Client-Type': 'mobile',
-                        },
-                    });
+                    const api = await createApi(); 
+                    
+                    const response = await api.get('/api/user/profile/');
                     const userData = response.data;
                     setUser(userData);
 
-                    await axios.post(`${savedUrl}/api/festa-atual/valida-user/`, {user_id: userData.id}, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Client-Type': 'mobile',
-                        },
-                    });
+                    await api.post('/api/festa-atual/valida-user/', { user_id: userData.id });
                 } catch (error) {
                     if (error.response && error.response.data && error.response.data.message) {
                         setValidationError(error.response.data.message);

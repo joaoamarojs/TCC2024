@@ -36,11 +36,11 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'Usuário admin adicionado ao grupo "{admin_group.name}".'))
 
         # Criar cliente com CPF válido, mas inexistente
-        nome_cliente = 'A classificar'
+        nome_cliente = 'A identificar'
         data_nascimento = '2000-01-01'
         cpf_valido = '123.456.789-00'
 
-        cliente = Cliente(nome=nome_cliente, data_nascimento=data_nascimento, cpf=cpf_valido)
+        cliente = Cliente(id=1,nome=nome_cliente, data_nascimento=data_nascimento, cpf=cpf_valido)
         cliente.save()
         self.stdout.write(self.style.SUCCESS(f'Cliente "{nome_cliente}" criado com CPF "{cpf_valido}".'))
 

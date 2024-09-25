@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { AuthContext } from '../utils/AuthContext';
 import useUserData from '../utils/useUserData';
+import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const HomeScreen = () => {
   const { user, loading, error, validationError } = useUserData();
+  const { logout, setNavigation} = React.useContext(AuthContext);
+  const navigation = useNavigation();
 
+  useEffect(() => {
+    setNavigation(navigation);
+  }, [navigation]);
+  
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -38,10 +47,12 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Pressable style={styles.logoutButton} onPress={logout}>
+        <Ionicons name="arrow-back" size={24} color="black" />
+      </Pressable>
       <View style={styles.textBox}>
         <Text style={styles.title}>Bem-vindo, {user ? user.username : 'Usuário'}!</Text>
       </View>
-
       <View style={styles.buttonContainer}>
           <Pressable style={styles.button}>
             <Text style={styles.text}>NOVA VENDA</Text>
@@ -61,6 +72,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start', 
     padding: 20,
+    marginTop:30
   },
   loadingContainer: {
     flex: 1,
@@ -91,6 +103,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     elevation: 3,
     backgroundColor: '#07DF12',
+  },
+  logoutButton: {
+    marginBottom: 20,
+    alignSelf: 'flex-start',
   },
 });
 

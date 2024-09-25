@@ -17,6 +17,7 @@ function Cartoes() {
   const [isLoadingCartao, setIsLoadingCartao] = useState(true);
   const [alerts, setAlerts] = useState([]);
   const [alertsCartoes, setAlertsCartoes] = useState([]);
+  const [alertsConfigCartao, setAlertsConfigCartao] = useState([]);
   const [cartoes, setCartoes] = useState([]);
   const [configcartao, setConfigCartao] = useState([]);
   const [titulo, setTitulo] = useState("");
@@ -49,6 +50,16 @@ function Cartoes() {
 
   const addAlertCartoes = (alert) => {
       setAlertsCartoes(prevAlerts => [
+          ...prevAlerts,
+          { 
+              id: Date.now(), 
+              ...alert 
+          }
+      ]);
+  };
+
+  const addAlertConfigCartao = (alert) => {
+      setAlertsConfigCartao(prevAlerts => [
           ...prevAlerts,
           { 
               id: Date.now(), 
@@ -155,13 +166,13 @@ function Cartoes() {
     api.post(`/api/config_cartao/`, { titulo, fonte, tamanho, cor, cor_cartao })
         .then((res) => {
           if (res.status === 201 || res.status === 200) {
-            addAlertCartoes({
+            addAlert({
               type: 'alert-success',
               title: 'Sucesso!',
               body: 'Cartão salvo com sucesso.'
             });
           }else{
-            addAlertCartoes({
+            addAlert({
               type: 'alert-danger',
               title: 'Erro!',
               body: 'Falhou em salvar cartão.'+res.statusText
@@ -172,7 +183,7 @@ function Cartoes() {
           const modalInstance = bootstrap.Modal.getInstance(modal);
           modalInstance.hide();
         })
-        .catch((error) => addAlertCartoes({ type: 'alert-danger',title: 'Erro!',body: 'Falhou em salvar cartao. '+error}));
+        .catch((error) => addAlertConfigCartao({ type: 'alert-danger',title: 'Erro!',body: 'Falhou em salvar cartao. '+error.response.data.message}));
   };
 
   const createCartao = (quantidade) => {
@@ -236,7 +247,7 @@ function Cartoes() {
         })
     };
 
-const generatePdf = async (codigos) => {
+  const generatePdf = async (codigos) => {
     if (codigos[0]) {
         setIsLoadingPDF(true);
         const pdf = new jsPDF();
@@ -315,7 +326,7 @@ const generatePdf = async (codigos) => {
         pdf.output('dataurlnewwindow');
         setIsLoadingPDF(false);
     }
-};
+  };
 
   return (
           <div className="container-fluid p-0">
@@ -395,6 +406,15 @@ const generatePdf = async (codigos) => {
                   title="Personalizar"
                   body={
                       <div className="row">
+                        <div className="response">
+                          {alertsConfigCartao.map(alert => (
+                              <Alert
+                                  key={alert.id}
+                                  className={alert.type}
+                                  message={{ title: alert.title, body: alert.body }}
+                              />
+                          ))}
+                        </div>
                         <div className="col-sm-7">
                           <div className="mb-3">
                             <label className="form-label">Titulo</label>
@@ -434,7 +454,6 @@ const generatePdf = async (codigos) => {
                   footer={                                    
                           <div className="mb-4">
                               <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-save align-middle me-2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></span> Salvar</button>
-                              <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                           </div> 
                   }
                   onSubmit={saveConfigCartao}

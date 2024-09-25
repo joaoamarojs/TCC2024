@@ -1,24 +1,36 @@
-import * as React from 'react';
-import { useEffect } from 'react';
+import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { ActivityIndicator } from 'react-native';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
-import { registerBackgroundTasks } from './utils/backgroundTasks';
+import { AuthProvider, AuthContext } from './utils/AuthContext';
 
 const Stack = createStackNavigator();
 
-export default function App() {
-  useEffect(() => {
-    registerBackgroundTasks();
-  }, []);
+const AuthWrapper = () => {
+  const { isAuthenticated, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="LoginScreen">
-        <Stack.Screen name=" " component={LoginScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator initialRouteName={isAuthenticated ? "Home" : "Login"}>
+      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }}/>
+    </Stack.Navigator>
   );
-}
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+        <AuthWrapper />
+      </NavigationContainer>
+    </AuthProvider>
+  );
+};
+
+export default App;
