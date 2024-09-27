@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from .permissions import IsInGroup
+from .permissions import IsInGroup, IsInBarracaOrCaixaGroup
 from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, Produto_FestaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
@@ -281,6 +281,7 @@ class FestaListCreate(generics.ListCreateAPIView):
 
 class FestaAtual(generics.GenericAPIView):
     serializer_class = FestaSerializer
+    permission_classes = [IsAuthenticated] 
 
     def get(self, request, *args, **kwargs):
         try:
@@ -295,6 +296,7 @@ class FestaAtual(generics.GenericAPIView):
 
 
 class FecharFesta(APIView):
+    permission_classes = [AdminstrativoGroup] 
     def post(self, request, *args, **kwargs):
         password = request.data.get('password')
 
@@ -325,7 +327,7 @@ class FestaDelete(generics.DestroyAPIView):
 
 class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
     serializer_class = Movimentacao_BarracaSerializer
-    permission_classes = [BarracaGroup,CaixaGroup]
+    permission_classes = [IsInBarracaOrCaixaGroup]
 
     def get_queryset(self):
         
@@ -340,7 +342,7 @@ class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
 
 class Movimentacao_BarracaDelete(generics.DestroyAPIView):
     serializer_class = Movimentacao_BarracaSerializer
-    permission_classes = [BarracaGroup,CaixaGroup]
+    permission_classes = [IsInBarracaOrCaixaGroup]
 
     def get_queryset(self):
         
@@ -349,7 +351,7 @@ class Movimentacao_BarracaDelete(generics.DestroyAPIView):
 
 class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
     serializer_class = Movimentacao_CaixaSerializer
-    permission_classes = [BarracaGroup,CaixaGroup]
+    permission_classes = [IsInBarracaOrCaixaGroup]
 
     def get_queryset(self):
         
@@ -398,7 +400,24 @@ class Produto_FestaListCreate(generics.ListCreateAPIView):
                 {"message": "Produto já possui valor."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-    
+        
+
+class Produto_FestaList(generics.ListAPIView):
+    serializer_class = Produto_FestaSerializer
+    permission_classes = [IsInBarracaOrCaixaGroup]
+
+    def get_queryset(self):
+        festa_id = self.kwargs.get('festa_id')
+        barraca_id = self.kwargs.get('barraca_id')
+
+        if festa_id is not None:
+            if barraca_id is not None:
+                produtos_da_barraca = Produto.objects.filter(barraca=barraca_id)
+                return Produto_Festa.objects.filter(festa=festa_id, produto__in=produtos_da_barraca)
+            else:
+                return Produto_Festa.objects.filter(festa=festa_id)
+
+        return Produto_Festa.objects.none()
 
 class Produto_FestaUpdate(generics.UpdateAPIView):
     queryset = Produto_Festa.objects.all()

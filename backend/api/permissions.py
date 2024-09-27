@@ -8,3 +8,11 @@ class IsInGroup(BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         return self.group_name in request.user.groups.values_list('name', flat=True)
+    
+
+class IsInBarracaOrCaixaGroup(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.groups.filter(name='Barraca').exists() or
+            request.user.groups.filter(name='Caixa').exists()
+        )

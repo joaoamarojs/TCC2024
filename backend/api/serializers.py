@@ -189,7 +189,7 @@ class Produto_FestaSerializer(serializers.ModelSerializer):
             valorf = f'R$ {obj.valor:,.2f}'
             valorf = valorf.replace('.', 'X').replace(',', '.').replace('X', ',')
             return valorf
-        return None             
+        return None            
 
 
 class Tipo_produtoSerializer(serializers.ModelSerializer):

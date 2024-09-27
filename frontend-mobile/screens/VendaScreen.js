@@ -1,32 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, ActivityIndicator, FlatList, Alert } from 'react-native';
+import { View, Modal, Text, TextInput, StyleSheet, Pressable, ActivityIndicator, FlatList, Alert } from 'react-native';
 import { AuthContext } from '../utils/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import useUserData from '../utils/useUserData';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { CameraView, Camera } from 'expo-camera';
+import SelectDropdown from 'react-native-select-dropdown'
+import createApi from '../utils/api';
 
 const VendaScreen = () => {
   const { user, loading, error } = useUserData();
   const { setNavigation } = React.useContext(AuthContext);
   const navigation = useNavigation();
+  const [festa, setFesta] = useState(null);
+  const [produtos_festa, setProdutos_Festa] = useState([]);
+  const [erro, setErro] = useState(null);
   const [valor, setValor] = useState('');
   const [totalInput, setTotalInput] = useState('0');
   const [total, setTotal] = useState('0.00');
+  const [selectedPag, setSelectedPag] = useState('');
+  const [modalProdVisible, setModalProdVisible] = useState(false);
 
-  const [selectedProducts, setSelectedProducts] = useState([
-    { id: '1', nome: 'Produto A', preco: 10.0, qtd: 1 },
-    { id: '2', nome: 'Produto B', preco: 15.5, qtd: 2 },
-    { id: '3', nome: 'Produto C', preco: 7.25, qtd: 1 },
-    { id: '4', nome: 'Produto D', preco: 12.25, qtd: 1 },
-    { id: '5', nome: 'Produto E', preco: 24.25, qtd: 1 },
-  ]);
+  const [selectedProdutos, setSelectedProdutos] = useState([]);
 
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [scannedData, setScannedData] = useState(null);
+  const formaPagamento = [
+    {title: 'Dinheiro'},
+    {title: 'Pix'},
+  ];
 
   useEffect(() => {
+    getFesta();
     const getCameraPermission = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasCameraPermission(status === 'granted');
@@ -34,10 +40,53 @@ const VendaScreen = () => {
     getCameraPermission();
     calcularTotal();
     setNavigation(navigation);
-  }, [navigation, setNavigation, selectedProducts, totalInput]);
+  }, [navigation, setNavigation, selectedProdutos, totalInput]);
+
+  const getFesta = async () => {
+    const api = await createApi();
+    try {
+        const response = await api.get("/api/festa-atual/");
+        setFesta(response.data);
+        setErro(null);
+    } catch (err) {
+        console.error(err);
+        setErro(err.response.data.message || "Ocorreu um erro ao buscar a festa.");
+        setFesta(null);
+    }
+  };
+
+  const getProdutos_Festa = async () => {
+    let url = ''
+    if(user.funcao == 'Barraca'){
+      url = `${user.barraca.codigo}/`
+    }
+    const api = await createApi();
+      if(festa){
+          try {
+              const response = await api.get(`/api/produto_festa/get/${festa.id}/${url}`);
+              const produtosComQtd = response.data.map(produto => ({
+                ...produto,
+                qtd: 0
+              }));
+              setProdutos_Festa(produtosComQtd);
+          } catch (err) {
+              console.error(err);
+          }
+      }
+  };
+
+  const showProdutosModal = () => {
+    getProdutos_Festa()
+    setModalProdVisible(true);
+  };
+
+  const addProdutos = () => {
+    setSelectedProdutos(produtos_festa.filter((product) => product.qtd > 0));
+    setModalProdVisible(false);
+  };
 
   const calcularTotal = () => {
-    const totalCalculado = selectedProducts.reduce((acc, product) => acc + product.preco * product.qtd, 0);
+    const totalCalculado = selectedProdutos.reduce((acc, product) => acc + product.valor * product.qtd, 0);
     const totalComInput = totalCalculado + parseFloat(totalInput);
     setTotal(totalComInput.toFixed(2));
   };
@@ -55,18 +104,26 @@ const VendaScreen = () => {
   };
 
   const incrementarQtd = (id) => {
-    setSelectedProducts((prevProducts) =>
+    setSelectedProdutos((prevProducts) =>
       prevProducts.map((product) =>
-        product.id === id ? { ...product, qtd: product.qtd + 1 } : product
+        product.produto === id ? { ...product, qtd: product.qtd + 1 } : product
+      )
+    );
+  };
+  
+  const incrementarQtdModal = (id) => {
+    setProdutos_Festa((prevProducts) =>
+      prevProducts.map((product) =>
+        product.produto === id ? { ...product, qtd: product.qtd + 1 } : product
       )
     );
   };
 
   const decrementarQtd = (id) => {
-    setSelectedProducts((prevProducts) =>
+    setSelectedProdutos((prevProducts) =>
       prevProducts
         .map((product) =>
-          product.id === id
+          product.produto === id
             ? { ...product, qtd: Math.max(0, product.qtd - 1) }
             : product
         )
@@ -74,14 +131,21 @@ const VendaScreen = () => {
     );
   };
 
-  const removerProduto = (id) => {
-    setSelectedProducts((prevProducts) =>
-      prevProducts.filter((product) => product.id !== id)
+  const decrementarQtdModal = (id) => {
+    setProdutos_Festa((prevProducts) =>
+      prevProducts.map((product) => {
+        if (product.produto === id && product.qtd > 0) {
+          return { ...product, qtd: Math.max(0, product.qtd - 1) };
+        }
+        return product;
+      })
     );
   };
 
-  const AddProduto = () => {
-    Alert.alert("Você clicou no botão de adicionar!");
+  const removerProduto = (id) => {
+    setSelectedProdutos((prevProducts) =>
+      prevProducts.filter((product) => product.produto !== id)
+    );
   };
 
   const handleScan = (data) => {
@@ -104,19 +168,19 @@ const VendaScreen = () => {
   if (scanning) {
     return (
       <View style={StyleSheet.absoluteFillObject}>
-          <View style={styles.scannerOverlay}>
-            <Text style={styles.scannerText}>Aponte a câmera para escanear o QR Code!</Text>
-            <CameraView
-              onBarcodeScanned={ onBarCodeScanned}
-              barcodeScannerSettings={{
-                barcodeTypes: ["qr", "pdf417"],
-              }}
-              style={styles.scannerBox}
-            />
-            <Pressable style={styles.cancelButton} onPress={() => setScanning(false)}>
-              <Text style={styles.cancelText}>Cancelar</Text>
-            </Pressable>
-          </View>
+        <View style={styles.scannerOverlay}>
+          <Text style={styles.scannerText}>Aponte a câmera para escanear o QR Code!</Text>
+          <CameraView
+            onBarcodeScanned={ onBarCodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: ["qr", "pdf417"],
+            }}
+            style={styles.scannerBox}
+          />
+          <Pressable style={styles.cancelButton} onPress={() => setScanning(false)}>
+            <Text style={styles.cancelText}>Cancelar</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -148,6 +212,57 @@ const VendaScreen = () => {
       <Pressable style={styles.logoutButton} onPress={() => navigation.navigate("Home")}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </Pressable>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalProdVisible}
+        onRequestClose={() => {
+          setModalProdVisible(!modalProdVisible);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Produtos</Text>
+            <View style={styles.selectProductsBox}>
+              <FlatList
+                style={{ maxHeight: 620 }}
+                data={produtos_festa}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <View style={styles.produtoItem}>
+                    <View>
+                      <Text style={styles.nomeProduto}>{item.produto_nome}</Text>
+                      <Text style={styles.precoProduto}>{item.valor_formatado}</Text>
+                    </View>
+                    <View style={styles.actionButtons}>
+                      <Pressable onPress={() => decrementarQtdModal(item.produto)} style={styles.qtdButton}>
+                        <Ionicons name="remove-circle-outline" size={24} color="red" />
+                      </Pressable>
+
+                      <Text style={styles.qtdProduto}>{item.qtd ? item.qtd : 0}</Text>
+
+                      <Pressable onPress={() => incrementarQtdModal(item.produto)} style={styles.qtdButton}>
+                        <Ionicons name="add-circle-outline" size={24} color="green" />
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+              />
+            </View>
+            <View style={styles.infoBoxContainer}>
+              <Pressable
+                style={[styles.button, styles.buttonAdd]}
+                onPress={ addProdutos }>
+                <Text style={styles.textStyle}>Adicionar</Text>
+              </Pressable>
+               <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setModalProdVisible(false)}>
+                <Text style={styles.textStyle}>Cancelar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.infoBoxContainer}>
         <View style={styles.textBoxCard}>
           <Text style={styles.title}>Codigo Cartão: {scannedData && scannedData.code}</Text>
@@ -166,9 +281,30 @@ const VendaScreen = () => {
           <Text style={styles.text}>ESCANEAR QR CODE</Text>
         </Pressable>
         {!showBarraca && (
-          <Pressable style={styles.button}>
-            <Text style={styles.text}>FORMA DE PAGAMENTO</Text>
-          </Pressable>
+            <SelectDropdown
+              data={formaPagamento}
+              onSelect={(selectedItem, index) => {
+                setSelectedPag(selectedItem.title);
+              }}
+              renderButton={(selectedItem, isOpened) => {
+                return (
+                  <View style={styles.dropdownButtonStyle}>
+                    <Text style={styles.dropdownButtonTxtStyle}>
+                      {(selectedItem && selectedItem.title) || 'Forma de Pagamento'}
+                    </Text>
+                  </View>
+                );
+              }}
+              renderItem={(item, index, isSelected) => {
+                return (
+                  <View style={{...styles.dropdownItemStyle, ...(isSelected && {backgroundColor: '#D2D9DF'})}}>
+                    <Text style={styles.dropdownItemTxtStyle}>{item.title}</Text>
+                  </View>
+                );
+              }}
+              showsVerticalScrollIndicator={false}
+              dropdownStyle={styles.dropdownMenuStyle}
+            />
         )}
         {!showBarraca && (
           <TextInput
@@ -176,37 +312,37 @@ const VendaScreen = () => {
             placeholder="Digitar um Valor"
             value={valor}
             onChangeText={handleChange}
-            keyboardType="numeric" // Para aceitar apenas números
+            keyboardType="numeric" 
           />
         )}
-        <View style={styles.selectedProductsBox}>
-          <Text style={styles.selectedProductsTitle}>Produtos Selecionados:</Text>
-          <Pressable style={styles.addButton} onPress={AddProduto}>
+        <View style={styles.selectedProdutosBox}>
+          <Text style={styles.selectedProdutosTitle}>Produtos Selecionados:</Text>
+          <Pressable style={styles.addButton} onPress={showProdutosModal}>
             <Ionicons name="add-outline" size={30} color="black" />
           </Pressable>
           <FlatList
             style={{ maxHeight: 200 }}
-            data={selectedProducts}
+            data={selectedProdutos}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.produtoItem}>
                 <View>
-                  <Text style={styles.nomeProduto}>{item.nome}</Text>
-                  <Text style={styles.precoProduto}>R$ {(item.preco * item.qtd).toFixed(2).replace(".", ",")}</Text>
+                  <Text style={styles.nomeProduto}>{item.produto_nome}</Text>
+                  <Text style={styles.precoProduto}>R$ {(item.valor * item.qtd).toFixed(2).replace(".", ",")}</Text>
                 </View>
                 <View style={styles.actionButtons}>
-                  <Pressable onPress={() => decrementarQtd(item.id)} style={styles.qtdButton}>
+                  <Pressable onPress={() => decrementarQtd(item.produto)} style={styles.qtdButton}>
                     <Ionicons name="remove-circle-outline" size={24} color="red" />
                   </Pressable>
 
                   <Text style={styles.qtdProduto}>{item.qtd}</Text>
 
-                  <Pressable onPress={() => incrementarQtd(item.id)} style={styles.qtdButton}>
+                  <Pressable onPress={() => incrementarQtd(item.produto)} style={styles.qtdButton}>
                     <Ionicons name="add-circle-outline" size={24} color="green" />
                   </Pressable>
                 </View>
                 <View style={styles.actionButtons}>
-                  <Pressable onPress={() => removerProduto(item.id)} style={styles.removeButton}>
+                  <Pressable onPress={() => removerProduto(item.produto)} style={styles.removeButton}>
                     <Ionicons name="trash-outline" size={24} color="red" />
                   </Pressable>
                 </View>
@@ -215,7 +351,7 @@ const VendaScreen = () => {
           />
         </View>
         <View style={styles.textBoxTotal}>
-          {!showBarraca && (<Text style={styles.titleTotal}>FORMA DE PAGAMENTO: </Text>)}
+          {!showBarraca && (<Text style={styles.titleTotal}>FORMA DE PAGAMENTO: {selectedPag}</Text>)}
           <Text style={styles.titleTotal}>TOTAL: {new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL', }).format(total)}</Text>
         </View>
         <Pressable style={styles.button}>
@@ -232,6 +368,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     padding: 20,
     marginTop: 30,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   loadingContainer: {
     flex: 1,
@@ -281,7 +422,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  selectedProductsBox: {
+  selectedProdutosBox: {
     backgroundColor: '#d3d3d3',
     padding: 20,
     borderRadius: 8,
@@ -289,7 +430,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     height: 280,
   },
-  selectedProductsTitle: {
+  selectProductsBox: {
+    backgroundColor: '#d3d3d3',
+    padding: 20,
+    borderRadius: 8,
+    marginBottom: 20,
+    marginTop: 20,
+    height: 625,
+    width: 345,
+  },
+  selectedProdutosTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
@@ -298,7 +448,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Slightly transparent background
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   scannerBox: {
     marginBottom: 20,
@@ -358,6 +508,78 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 8,
     color: '#000000'
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 15,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  buttonClose: {
+    alignSelf:'flex-end',
+    backgroundColor: '#2196F3',
+  },
+  buttonAdd: {
+    alignSelf:'flex-start',
+    marginRight: 100,
+  },
+  dropdownButtonStyle: {
+    width: 200,
+    height: 50,
+    backgroundColor: '#E9ECEF',
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  dropdownButtonTxtStyle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#151E26',
+  },
+  dropdownButtonArrowStyle: {
+    fontSize: 28,
+  },
+  dropdownButtonIconStyle: {
+    fontSize: 28,
+    marginRight: 8,
+  },
+  dropdownMenuStyle: {
+    backgroundColor: '#E9ECEF',
+    borderRadius: 8,
+  },
+  dropdownItemStyle: {
+    width: '100%',
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  dropdownItemTxtStyle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#151E26',
+  },
+  dropdownItemIconStyle: {
+    fontSize: 28,
+    marginRight: 8,
   },
 });
 
