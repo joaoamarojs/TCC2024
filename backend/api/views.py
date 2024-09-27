@@ -527,7 +527,6 @@ class Tipo_produtoDelete(generics.DestroyAPIView):
 
 
 class UserCreateList(generics.ListCreateAPIView):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AdminstrativoGroup]
 
@@ -624,7 +623,7 @@ class CustomTokenObtainPairView(APIView):
         
 
 class ValidaUser(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated]
     serializer_class = FestaSerializer
 
     def post(self, request, *args, **kwargs):
@@ -641,13 +640,26 @@ class ValidaUser(generics.GenericAPIView):
         if not festa_atual:
             return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_404_NOT_FOUND)
 
-        is_responsavel_barraca = Barraca_Festa.objects.filter(festa=festa_atual, user_responsavel=user).exists()
-        is_responsavel_caixa = Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user).exists()
+        barraca_festa = Barraca_Festa.objects.filter(festa=festa_atual, user_responsavel=user).first()
+        caixa_festa = Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user).first()
 
-        if is_responsavel_barraca or is_responsavel_caixa:
-            return Response({"message": "Usuário válido para a festa atual."}, status=status.HTTP_200_OK)
+        if barraca_festa:
+            return Response({
+                "message": "Usuário válido para a festa atual.",
+                "funcao": "Barraca",
+                "barraca": {
+                    "codigo": barraca_festa.barraca.id,
+                    "nome": barraca_festa.barraca.nome
+                }
+            }, status=status.HTTP_200_OK)
+        elif caixa_festa:
+            return Response({
+                "message": "Usuário válido para a festa atual.",
+                "funcao": "Caixa"
+            }, status=status.HTTP_200_OK)
         else:
-            return Response({"message": "Usuário não está associado à festa atual."}, status=status.HTTP_404_NOT_FOUND) 
+            return Response({"message": "Usuário não está associado à festa atual."}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class ConfigCartao(generics.GenericAPIView):

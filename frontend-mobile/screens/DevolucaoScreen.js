@@ -1,20 +1,18 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { AuthContext } from '../utils/AuthContext';
-import useUserData from '../utils/useUserData';
 import { useNavigation } from '@react-navigation/native';
+import useUserData from '../utils/useUserData';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const HomeScreen = () => {
-  const { user, loading, error, validationError } = useUserData();
-  const { logout, setNavigation} = React.useContext(AuthContext);
+const DevolucaoScreen = () => {
+  const { user, loading, error } = useUserData();
+  const { setNavigation } = React.useContext(AuthContext);
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (navigation !== setNavigation) {
-      setNavigation(navigation);
-    }
-  }, [navigation]);
+    setNavigation(navigation);
+  }, [navigation, setNavigation]);
 
   if (loading) {
     return (
@@ -35,42 +33,23 @@ const HomeScreen = () => {
     );
   }
 
-  if (validationError) {
-    return (
-      <View style={styles.container}>
-        <Pressable style={styles.logoutButton} onPress={logout}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </Pressable>
-        <View style={styles.textBox}>
-          <Text style={styles.title}>Bem-vindo, {user ? user.username : 'Usuário'}!</Text>
-        </View>
-        <View style={styles.buttonContainer}>
-          <Text style={styles.title}>Atenção: {validationError}</Text>
-        </View>
-      </View>
-    );
-  }
-
-  const showDevolverCreditos = !user.groups.includes(2) && user.groups.includes(3);
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.logoutButton} onPress={logout}>
+      <Pressable style={styles.logoutButton} onPress={() => navigation.navigate("Home")}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </Pressable>
       <View style={styles.textBox}>
-        <Text style={styles.title}>Bem-vindo, {user ? user.username : 'Usuário'}!</Text>
-        <Text style={styles.subtitle}>Função: {user ? user.funcao : 'Nenhuma'}</Text>
+        <Text style={styles.title}>Codigo Cartão: </Text>
+        <Text style={styles.title}>Saldo: </Text>
       </View>
       <View style={styles.buttonContainer}>
-          <Pressable style={styles.button} onPress={() => navigation.navigate("Venda")}> 
-            <Text style={styles.text} >NOVA VENDA</Text>
-          </Pressable>
-        {showDevolverCreditos && (
-          <Pressable style={styles.button} onPress={() => navigation.navigate("Devolucao")}>
-            <Text style={styles.text}>DEVOLVER CRÉDITOS</Text>
-          </Pressable>
-        )}
+        <Pressable style={styles.button}>
+          <Text style={styles.text}>ESCANEAR QR CODE</Text>
+        </Pressable>
+        <Pressable style={styles.button}>
+          <Text style={styles.text}>DEVOLVER SALDO</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -91,15 +70,12 @@ const styles = StyleSheet.create({
   textBox: {
     backgroundColor: '#B0DE09',
     alignSelf: 'flex-start',
-    padding: 20,
+    padding: 15,
     marginBottom: 40,
     borderRadius: 8,
   },
   title: {
-    fontSize: 24,
-  },
-  subtitle: {
-    fontSize: 14,
+    fontSize: 18,
   },
   buttonContainer: {
     flexDirection: 'column', 
@@ -122,4 +98,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default DevolucaoScreen;

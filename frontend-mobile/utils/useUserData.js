@@ -17,9 +17,13 @@ function useUserData() {
                     
                     const response = await api.get('/api/user/profile/');
                     const userData = response.data;
-                    setUser(userData);
 
-                    await api.post('/api/festa-atual/valida-user/', { user_id: userData.id });
+                    const res = await api.post('/api/festa-atual/valida-user/', { user_id: userData.id });
+                    userData.funcao = res.data.funcao;
+                    if(userData.groups.includes(2)){
+                        userData.barraca = res.data.barraca;
+                    }
+                    setUser(userData);
                 } catch (error) {
                     if (error.response && error.response.data && error.response.data.message) {
                         setValidationError(error.response.data.message);

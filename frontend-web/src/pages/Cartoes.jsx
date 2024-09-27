@@ -276,7 +276,7 @@ function Cartoes() {
                     svg={<QRCode
                         size={928}
                         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                        value={`{code: ${codigos[i]}}`}
+                        value={`{"code": ${codigos[i]}}`}
                         viewBox={`0 0 928 928`}
                     />}
                 />
@@ -513,7 +513,7 @@ function Cartoes() {
                                 svg={selectedCartaoId ? <QRCode
                                   size={928}
                                   style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                                  value={`{code: ${nome}}`}
+                                  value={`{"code": ${nome}}`}
                                   viewBox={`0 0 928 928`}
                                 />: ''}
                               />
