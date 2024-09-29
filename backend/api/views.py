@@ -7,13 +7,14 @@ from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .permissions import IsInGroup, IsInBarracaOrCaixaGroup
-from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, Produto_FestaSerializer, ProdutoSerializer, Tipo_produtoSerializer
+from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, Movimentacao_ProdutoSerializer, Produto_FestaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
 from .models.barraca_festa import Barraca_Festa
@@ -25,6 +26,7 @@ from .models.estoque import Estoque
 from .models.festa import Festa
 from .models.movimentacao_barraca import Movimentacao_Barraca
 from .models.movimentacao_caixa import Movimentacao_Caixa
+from .models.movimentacao_produto import Movimentacao_Produto
 from .models.produto import Produto
 from .models.produto_festa import Produto_Festa
 from .models.tipo_produto import Tipo_produto
@@ -327,46 +329,91 @@ class FestaDelete(generics.DestroyAPIView):
 
 class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
     serializer_class = Movimentacao_BarracaSerializer
-    permission_classes = [IsInBarracaOrCaixaGroup]
+    permission_classes = [BarracaGroup]
 
     def get_queryset(self):
-        
-        return Movimentacao_Barraca.objects.filter()
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        if festa_atual:
+            barraca_id = self.request.query_params.get('barraca', None)
+
+            if barraca_id:
+                return Movimentacao_Barraca.objects.filter(barraca=barraca_id)
+            else:
+                return Movimentacao_Barraca.objects.all()
+        else:
+            return Movimentacao_Barraca.objects.none()
 
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+
+        if festa_atual:
+            barracas_do_usuario = Barraca_Festa.objects.filter(user_responsavel=self.request.user, festa=festa_atual)
+
+            if not barracas_do_usuario.exists():
+                raise ValidationError({"message": "O usuário não possui barracas associadas a esta festa."})
+
+            barraca = barracas_do_usuario.first().barraca
+
+            cartao_id = self.request.data.get('cartao') 
+            cartao_obj = get_object_or_404(Cartao, id=cartao_id)
+
+            total_caixa = Movimentacao_Caixa.objects.filter(cartao=cartao_obj).aggregate(total=models.Sum('valor'))['total'] or 0
+            total_barraca = Movimentacao_Barraca.objects.filter(cartao=cartao_obj).aggregate(total=models.Sum('valor'))['total'] or 0
+
+            saldo = total_caixa - total_barraca
+
+            if saldo <= 0:
+                raise ValidationError({"message": "Saldo insuficiente."})
+
+            movimentacao_barraca = serializer.save(festa=festa_atual, user_barraca=self.request.user, barraca=barraca)
+
+            produtos = self.request.data.get('produtos', None)
+
+            if produtos:
+                for produto_data in produtos:
+                    produto_id = produto_data.get('produto')
+                    qtd = produto_data.get('qtd')
+
+                    if produto_id and qtd:
+                        Movimentacao_Produto.objects.create(
+                            movimentacao=movimentacao_barraca,
+                            produto_id=produto_id,
+                            qtd=qtd
+                        )
+            else:
+                raise ValidationError({"message": "Produtos não fornecidos."})
         else:
-            print(serializer.errors)
-
-
-class Movimentacao_BarracaDelete(generics.DestroyAPIView):
-    serializer_class = Movimentacao_BarracaSerializer
-    permission_classes = [IsInBarracaOrCaixaGroup]
-
-    def get_queryset(self):
-        
-        return Movimentacao_Barraca.objects.filter() 
-
+            raise ValidationError({"message": "Nenhuma festa em aberto."})
 
 class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
     serializer_class = Movimentacao_CaixaSerializer
-    permission_classes = [IsInBarracaOrCaixaGroup]
+    permission_classes = [CaixaGroup]
 
     def get_queryset(self):
-        
-        return Movimentacao_Caixa.objects.filter()
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        if festa_atual:
+            user_caixa_id = self.request.query_params.get('user_caixa', None)
+            
+            if user_caixa_id:
+                return Movimentacao_Caixa.objects.filter(user_caixa=user_caixa_id)
+            else:
+                return Movimentacao_Caixa.objects.all()
+        else:
+            return Movimentacao_Caixa.objects.none()    
+
 
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        
+        if festa_atual:
+            serializer.save(festa=festa_atual, user_caixa=self.request.user)
         else:
-            print(serializer.errors)
+            raise ValidationError({"message": "Nenhuma festa em aberto."})
 
 
 class Movimentacao_CaixaDelete(generics.DestroyAPIView):
     serializer_class = Movimentacao_CaixaSerializer
-    permission_classes = [BarracaGroup,CaixaGroup]
+    permission_classes = [IsInBarracaOrCaixaGroup]
 
     def get_queryset(self):
         
@@ -505,6 +552,21 @@ class ProdutosFestaAtualList(generics.ListAPIView):
                 return Produto.objects.none() 
         except ObjectDoesNotExist:
             return Produto.objects.none() 
+        
+
+class SaldoCartao(APIView):
+    permission_classes = [IsInBarracaOrCaixaGroup]
+
+    def get(self, request, cartao):
+        cartao_obj = get_object_or_404(Cartao, id=cartao)
+
+        total_caixa = Movimentacao_Caixa.objects.filter(cartao=cartao_obj).aggregate(total=models.Sum('valor'))['total'] or 0
+
+        total_barraca = Movimentacao_Barraca.objects.filter(cartao=cartao_obj).aggregate(total=models.Sum('valor'))['total'] or 0
+
+        saldo = total_caixa - total_barraca
+
+        return Response({"cartao_id": cartao_obj.id, "saldo": saldo}, status=status.HTTP_200_OK)   
         
 
 class Tipo_produtoListCreate(generics.ListCreateAPIView):

@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text,  StyleSheet, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { AuthContext } from '../utils/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import useUserData from '../utils/useUserData';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { CameraView, Camera } from 'expo-camera';
 import createApi from '../utils/api';
 
 const DevolucaoScreen = () => {
-  const { user, loading, error } = useUserData();
+  const { user, loading, error , fetchUserData } = useUserData();
   const { setNavigation } = React.useContext(AuthContext);
   const navigation = useNavigation();
-
+  const [erro, setErro] = useState(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [scanning, setScanning] = useState(false);
-  const [scannedData, setScannedData] = useState(null);
+  const [cartao, setCartao] = useState([]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -25,9 +31,23 @@ const DevolucaoScreen = () => {
     setNavigation(navigation);
   }, [navigation, setNavigation]);
 
+  const getCartao = async (data) => {
+    const api = await createApi();
+    try {
+        const response = await api.get(`/api/saldo-cartao/${data.code}/`);
+        setCartao(response.data);
+        setErro(null);
+        setScanning(false);
+    } catch (err) {
+        console.error(err);
+        setErro(err.response.data.message || "Ocorreu um erro ao buscar cartão.");
+        setCartao(null);
+        setScanning(false);
+    }
+  };
+
   const handleScan = (data) => {
-    setScannedData(JSON.parse(data));
-    setScanning(false);
+    getCartao(JSON.parse(data))
   };
 
   const startScanning = () => {
@@ -41,6 +61,57 @@ const DevolucaoScreen = () => {
   const onBarCodeScanned = ({ type, data }) => {
     handleScan(data);
   };
+
+  const efetuarDevolucao = async () => {
+    if(cartao.saldo <= 0){
+      Alert.alert('Esse cartão está sem saldo!')
+      return;
+    }
+
+    const dadosVenda = {
+        desc: "Devolução de créditos",
+        cartao: cartao.cartao_id || null,
+        valor: -parseFloat(cartao.saldo),
+        forma_pagamento: "Dinheiro"
+    };
+
+    if (!dadosVenda.cartao) {
+        Alert.alert('Atenção', 'Escaneie o QR Code do cartão antes de efetuar a venda.');
+        return;
+    }
+
+    try {
+        const api = await createApi();
+
+        await api.post('/api/movimentacao_caixa/', dadosVenda);
+
+        Alert.alert('Sucesso', 'Baixa de creditos realizada com sucesso!');
+        resetarCampos();
+    } catch (error) {
+        console.error('Erro ao efetuar venda:', error);
+
+        if (error.response) {
+            const { status, data } = error.response;
+
+            if (status === 400) {
+                Alert.alert('Erro', data.message || 'Verifique os dados fornecidos.');
+            } else if (status === 404) {
+                Alert.alert('Erro', 'Festa em aberto não encontrada.');
+            } else if (status === 403) {
+                Alert.alert('Erro', 'Saldo insuficiente.');
+            } else {
+                Alert.alert('Erro', 'Ocorreu um erro inesperado. Tente novamente.');
+            }
+        } else {
+            Alert.alert('Erro', 'Ocorreu um erro ao efetuar a venda. Tente novamente.');
+        }
+    }
+};
+  
+  const resetarCampos = () => {
+    setCartao([])
+  };
+
 
   if (scanning) {
     return (
@@ -86,14 +157,14 @@ const DevolucaoScreen = () => {
         <Ionicons name="arrow-back" size={24} color="black" />
       </Pressable>
       <View style={styles.textBox}>
-          <Text style={styles.title}>Codigo Cartão: {scannedData && scannedData.code}</Text>
-          <Text style={styles.title}>Saldo: </Text>
-        </View>
+        <Text style={styles.title}>Codigo Cartão: {cartao && cartao.cartao_id}</Text>
+        <Text style={styles.title}>Saldo: {cartao.saldo ? new Intl.NumberFormat('pt-BR', {style: 'currency',currency: 'BRL', }).format(cartao.saldo) : 'R$ 0,00'}</Text>
+      </View>
       <View style={styles.buttonContainer}>
         <Pressable style={styles.button} onPress={startScanning}>
           <Text style={styles.text}>ESCANEAR QR CODE</Text>
         </Pressable>
-        <Pressable style={styles.button}>
+        <Pressable style={styles.button} onPress={efetuarDevolucao}>
           <Text style={styles.text}>DEVOLVER SALDO</Text>
         </Pressable>
       </View>

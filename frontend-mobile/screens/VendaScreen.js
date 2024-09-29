@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Modal, Text, TextInput, StyleSheet, Pressable, ActivityIndicator, FlatList, Alert } from 'react-native';
 import { AuthContext } from '../utils/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import useUserData from '../utils/useUserData';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { CameraView, Camera } from 'expo-camera';
@@ -9,7 +9,7 @@ import SelectDropdown from 'react-native-select-dropdown'
 import createApi from '../utils/api';
 
 const VendaScreen = () => {
-  const { user, loading, error } = useUserData();
+  const { user, loading, error , fetchUserData } = useUserData();
   const { setNavigation } = React.useContext(AuthContext);
   const navigation = useNavigation();
   const [festa, setFesta] = useState(null);
@@ -25,11 +25,17 @@ const VendaScreen = () => {
 
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [scanning, setScanning] = useState(false);
-  const [scannedData, setScannedData] = useState(null);
+  const [cartao, setCartao] = useState([]);
   const formaPagamento = [
     {title: 'Dinheiro'},
     {title: 'Pix'},
   ];
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
 
   useEffect(() => {
     getFesta();
@@ -52,6 +58,21 @@ const VendaScreen = () => {
         console.error(err);
         setErro(err.response.data.message || "Ocorreu um erro ao buscar a festa.");
         setFesta(null);
+    }
+  };
+
+  const getCartao = async (data) => {
+    const api = await createApi();
+    try {
+        const response = await api.get(`/api/saldo-cartao/${data.code}/`);
+        setCartao(response.data);
+        setErro(null);
+        setScanning(false);
+    } catch (err) {
+        console.error(err);
+        setErro(err.response.data.message || "Ocorreu um erro ao buscar cartão.");
+        setCartao(null);
+        setScanning(false);
     }
   };
 
@@ -104,6 +125,7 @@ const VendaScreen = () => {
   };
 
   const incrementarQtd = (id) => {
+    console.log(selectedProdutos)
     setSelectedProdutos((prevProducts) =>
       prevProducts.map((product) =>
         product.produto === id ? { ...product, qtd: product.qtd + 1 } : product
@@ -120,6 +142,7 @@ const VendaScreen = () => {
   };
 
   const decrementarQtd = (id) => {
+    console.log(selectedProdutos)
     setSelectedProdutos((prevProducts) =>
       prevProducts
         .map((product) =>
@@ -149,8 +172,7 @@ const VendaScreen = () => {
   };
 
   const handleScan = (data) => {
-    setScannedData(JSON.parse(data));
-    setScanning(false);
+    getCartao(JSON.parse(data))
   };
 
   const startScanning = () => {
@@ -163,6 +185,89 @@ const VendaScreen = () => {
 
   const onBarCodeScanned = ({ type, data }) => {
     handleScan(data);
+  };
+
+  const efetuarVenda = async () => {
+    if(cartao.saldo <= 0 && user.funcao === "Barraca"){
+      Alert.alert('Esse cartão está sem saldo!')
+      return;
+    }
+
+    if (selectedProdutos.length === 0 && !totalInput) {
+        Alert.alert('Atenção', 'Adicione produtos ou um valor antes de efetuar a venda.');
+        return;
+    }
+
+    const desc = selectedProdutos
+        .map((produto) => `${produto.qtd}x ${produto.produto_nome}`)
+        .join(', ');
+
+    const virgula = selectedProdutos.length !== 0 ? ',' : '';
+
+    const descCompleta = totalInput > 0 
+        ? `${desc}${virgula} Valor Manual: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalInput)}`
+        : desc;
+
+    const dadosVenda = {
+        desc: descCompleta,
+        cartao: cartao.cartao_id || null,
+        valor: parseFloat(total),
+    };
+
+    if (user.funcao === 'Caixa') {
+        dadosVenda.forma_pagamento = selectedPag;
+    }
+
+    if (user.funcao === 'Barraca') {
+        dadosVenda.produtos = selectedProdutos;
+    }
+
+    if (!dadosVenda.cartao) {
+        Alert.alert('Atenção', 'Escaneie o QR Code do cartão antes de efetuar a venda.');
+        return;
+    }
+
+    try {
+        const api = await createApi();
+        console.log(dadosVenda);
+
+        if (user.funcao === 'Barraca') {
+            await api.post('/api/movimentacao_barraca/', dadosVenda);
+        } else if (user.funcao === 'Caixa') {
+            await api.post('/api/movimentacao_caixa/', dadosVenda);
+        }
+
+        Alert.alert('Sucesso', 'Venda realizada com sucesso!');
+        resetarCampos();
+
+    } catch (error) {
+        console.error('Erro ao efetuar venda:', error);
+
+        if (error.response) {
+            const { status, data } = error.response;
+
+            if (status === 400) {
+                Alert.alert('Erro', data.message || 'Verifique os dados fornecidos.');
+            } else if (status === 404) {
+                Alert.alert('Erro', 'Festa em aberto não encontrada.');
+            } else if (status === 403) {
+                Alert.alert('Erro', 'Saldo insuficiente.');
+            } else {
+                Alert.alert('Erro', 'Ocorreu um erro inesperado. Tente novamente.');
+            }
+        } else {
+            Alert.alert('Erro', 'Ocorreu um erro ao efetuar a venda. Tente novamente.');
+        }
+    }
+};
+  
+  const resetarCampos = () => {
+    setSelectedProdutos([]);
+    setTotalInput('0');
+    setTotal('0.00');
+    setValor('');
+    setSelectedPag('');
+    setCartao([])
   };
 
   if (scanning) {
@@ -265,8 +370,8 @@ const VendaScreen = () => {
       </Modal>
       <View style={styles.infoBoxContainer}>
         <View style={styles.textBoxCard}>
-          <Text style={styles.title}>Codigo Cartão: {scannedData && scannedData.code}</Text>
-          <Text style={styles.title}>Saldo: </Text>
+          <Text style={styles.title}>Codigo Cartão: {cartao && cartao.cartao_id}</Text>
+          <Text style={styles.title}>Saldo: {cartao.saldo ? new Intl.NumberFormat('pt-BR', {style: 'currency',currency: 'BRL', }).format(cartao.saldo) : 'R$ 0,00'}</Text>
         </View>
         {showBarraca && (
           <View style={styles.textBox}>
@@ -354,7 +459,7 @@ const VendaScreen = () => {
           {!showBarraca && (<Text style={styles.titleTotal}>FORMA DE PAGAMENTO: {selectedPag}</Text>)}
           <Text style={styles.titleTotal}>TOTAL: {new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL', }).format(total)}</Text>
         </View>
-        <Pressable style={styles.button}>
+        <Pressable style={styles.button} onPress={efetuarVenda}>
           <Text style={styles.text}>EFETUAR VENDA</Text>
         </Pressable>
       </View>

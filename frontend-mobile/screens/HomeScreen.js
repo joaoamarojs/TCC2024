@@ -2,13 +2,19 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { AuthContext } from '../utils/AuthContext';
 import useUserData from '../utils/useUserData';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const HomeScreen = () => {
-  const { user, loading, error, validationError } = useUserData();
-  const { logout, setNavigation} = React.useContext(AuthContext);
+  const { user, loading, error, validationError, fetchUserData } = useUserData(); 
+  const { logout, setNavigation } = React.useContext(AuthContext);
   const navigation = useNavigation();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
 
   useEffect(() => {
     if (navigation !== setNavigation) {
@@ -63,9 +69,9 @@ const HomeScreen = () => {
         <Text style={styles.subtitle}>Função: {user ? user.funcao : 'Nenhuma'}</Text>
       </View>
       <View style={styles.buttonContainer}>
-          <Pressable style={styles.button} onPress={() => navigation.navigate("Venda")}> 
-            <Text style={styles.text} >NOVA VENDA</Text>
-          </Pressable>
+        <Pressable style={styles.button} onPress={() => navigation.navigate("Venda")}> 
+          <Text style={styles.text}>NOVA VENDA</Text>
+        </Pressable>
         {showDevolverCreditos && (
           <Pressable style={styles.button} onPress={() => navigation.navigate("Devolucao")}>
             <Text style={styles.text}>DEVOLVER CRÉDITOS</Text>
@@ -81,7 +87,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start', 
     padding: 20,
-    marginTop:30
+    marginTop: 30
   },
   loadingContainer: {
     flex: 1,

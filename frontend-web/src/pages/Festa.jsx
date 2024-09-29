@@ -255,7 +255,7 @@ function Festa(){
         e.preventDefault();
         if(selectedBarraca !== null || selectedUserResponsavel !== null){
             try {
-                await api.post('/api/barraca_festa/', { barraca: parseInt(selectedBarraca, 10), user_responsavel: parseInt(selectedUserResponsavel, 10), festa: festa.id });
+                await api.post('/api/barraca_festa/', { barraca: parseInt(selectedBarraca, 10), user_responsavel: parseInt(selectedUserResponsavel, 10) });
                 addAlertBarraca({ type: 'alert-success', title: 'Sucesso!', body: 'Usuario adicionado a barraca adicionada com sucesso!' });
                 getBarracas();
                 getBarracasFesta();
@@ -272,7 +272,7 @@ function Festa(){
         e.preventDefault();
         if(selectedCaixa !== null){
             try {
-                await api.post('/api/caixa_festa/', { user_caixa: parseInt(selectedCaixa, 10), festa: festa.id });
+                await api.post('/api/caixa_festa/', { user_caixa: parseInt(selectedCaixa, 10) });
                 addAlertCaixa({ type: 'alert-success', title: 'Sucesso!', body: 'Caixa adicionado com sucesso!' });
                 getCaixas();
                 getCaixasFesta();
@@ -288,7 +288,7 @@ function Festa(){
         e.preventDefault();
         if(selectedProduto !== null){
             try {
-                await api.post(`/api/produto_festa/${festa.id}/`, { produto: parseInt(selectedProduto, 10), valor: valor, festa:festa.id });
+                await api.post(`/api/produto_festa/${festa.id}/`, { produto: parseInt(selectedProduto, 10), valor: valor });
                 addAlertProdutos({ type: 'alert-success', title: 'Sucesso!', body: 'Valor adicionado com sucesso!' });
                 getProdutos();
                 getProdutos_Festa();

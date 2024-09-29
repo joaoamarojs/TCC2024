@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group
-from api.models import Cliente
+from api.models.cliente import Cliente
 
 class Command(BaseCommand):
     help = 'Cria o usuário admin, os grupos de usuário e um cliente a classificar'

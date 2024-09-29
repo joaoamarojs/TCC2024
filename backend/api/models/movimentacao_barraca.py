@@ -9,7 +9,7 @@ class Movimentacao_Barraca(models.Model):
     desc = models.CharField(max_length=150)
     cartao = models.ForeignKey(Cartao, on_delete=models.RESTRICT, related_name="movimentacoes_barraca")
     festa = models.ForeignKey(Festa, on_delete=models.RESTRICT, related_name="movimentacoes_barraca")
-    valor = models.DecimalField(decimal_places=2,max_digits=5)
+    valor = models.DecimalField(decimal_places=2,max_digits=10)
     user_barraca = models.ForeignKey(User, on_delete=models.RESTRICT, related_name="movimentacoes_barraca")
     barraca = models.ForeignKey(Barraca, on_delete=models.RESTRICT, related_name="movimentacoes_barraca")
 

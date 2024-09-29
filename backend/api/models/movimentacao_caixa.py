@@ -6,6 +6,7 @@ from .cartao import Cartao
 
 class Movimentacao_Caixa(models.Model):
     desc = models.CharField(max_length=150)
+    forma_pagamento = models.CharField(default=None, blank=True, null=True, max_length=15)
     cartao = models.ForeignKey(Cartao, on_delete=models.RESTRICT, related_name="movimentacoes_caixa")
     festa = models.ForeignKey(Festa, on_delete=models.RESTRICT, related_name="movimentacoes_caixa")
     valor = models.DecimalField(decimal_places=2,max_digits=5)

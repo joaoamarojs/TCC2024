@@ -9,6 +9,7 @@ from .models.estoque import Estoque
 from .models.festa import Festa
 from .models.movimentacao_barraca import Movimentacao_Barraca
 from .models.movimentacao_caixa import Movimentacao_Caixa
+from .models.movimentacao_produto import Movimentacao_Produto
 from .models.produto import Produto
 from .models.produto_festa import Produto_Festa
 from .models.tipo_produto import Tipo_produto
@@ -75,7 +76,8 @@ class Barraca_FestaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barraca_Festa
         fields = ["id", "barraca", "barraca_nome", "festa", "user_responsavel", "user_responsavel_username"]
-
+        read_only_fields = ["festa"]  
+        
     def get_user_responsavel_username(self, obj):
         return obj.user_responsavel.username
 
@@ -104,6 +106,7 @@ class Caixa_FestaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Caixa_Festa
         fields = ["id", "festa", "user_caixa", "user_caixa_username"]
+        read_only_fields = ["festa"]  
 
     def get_user_caixa_username(self, obj):
         if isinstance(obj, Caixa_Festa):
@@ -148,6 +151,7 @@ class EstoqueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estoque
         fields = ["id", "produto", "quant", "data", "festa"]  
+        read_only_fields = ["festa"]  
 
 
 class FestaSerializer(serializers.ModelSerializer):
@@ -156,17 +160,34 @@ class FestaSerializer(serializers.ModelSerializer):
         fields = ["id", "nome", "data_inicio", "fechada"]  
 
 
-class Movimentacao_BarracaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Movimentacao_Barraca
-        fields = ["id", "desc", "cartao", "festa", "valor", "user_barraca", "barraca"]  
-
-
 class Movimentacao_CaixaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movimentacao_Caixa
-        fields = ["id", "desc", "cartao", "festa", "valor", "user_caixa"]  
+        fields = ["id", "desc", "forma_pagamento", "cartao", "festa", "valor", "user_caixa"]  
+        read_only_fields = ["festa", "user_caixa"] 
 
+
+class Movimentacao_ProdutoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movimentacao_Produto
+        fields = ['produto', 'qtd']
+        
+class Movimentacao_BarracaSerializer(serializers.ModelSerializer):
+    produtos = Movimentacao_ProdutoSerializer(many=True)
+
+    class Meta:
+        model = Movimentacao_Barraca
+        fields = ["id", "desc", "cartao", "festa", "valor", "produtos", "user_barraca", "barraca"] 
+        read_only_fields = ["festa", "user_barraca", "barraca"]  
+
+    def create(self, validated_data):
+        produtos_data = validated_data.pop('produtos')
+        movimentacao = Movimentacao_Barraca.objects.create(**validated_data)
+
+        for produto_data in produtos_data:
+            Movimentacao_Produto.objects.create(movimentacao=movimentacao, **produto_data)
+
+        return movimentacao
 
 class ProdutoSerializer(serializers.ModelSerializer):
     barraca_nome = serializers.CharField(source='barraca.nome', read_only=True)
@@ -183,6 +204,7 @@ class Produto_FestaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto_Festa
         fields = [ 'id', 'produto', 'produto_nome', 'festa', 'valor', 'valor_formatado']  
+        read_only_fields = ['festa']  
 
     def get_valor_formatado(self, obj):
         if obj.valor:
