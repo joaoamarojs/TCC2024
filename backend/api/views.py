@@ -2,7 +2,6 @@ import os
 import json
 from django.db import IntegrityError
 from django.forms import ValidationError
-from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate
@@ -16,7 +15,6 @@ from django.shortcuts import get_object_or_404
 from .permissions import IsInGroup, IsInBarracaOrCaixaGroup
 from .serializers import UserSerializer, UserProfileSerializer, BarracaSerializer, Barraca_FestaSerializer, Caixa_FestaSerializer, CartaoSerializer, ClienteSerializer, EstoqueSerializer, FestaSerializer, GroupSerializer, Movimentacao_BarracaSerializer, Movimentacao_CaixaSerializer, Movimentacao_ProdutoSerializer, Produto_FestaSerializer, ProdutoSerializer, Tipo_produtoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.http import JsonResponse
 from .models.barraca_festa import Barraca_Festa
 from .models.barraca import Barraca
 from .models.caixa_festa import Caixa_Festa
@@ -67,7 +65,7 @@ class Barraca_FestaListCreate(generics.ListCreateAPIView):
         if festa_atual:
             serializer.save(festa=festa_atual)
         else:
-            raise ValidationError({"message": ["Nenhuma festa atual disponível para associar."]})      
+            return Response({"message": ["Nenhuma festa atual disponível para associar."]},status=status.HTTP_400_BAD_REQUEST)   
         
 
 class Barraca_FestaDelete(generics.DestroyAPIView):
@@ -113,7 +111,7 @@ class BarracaUpdate(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         pk = kwargs.get('pk', None)
         if not pk:
-            raise ValidationError({"message": "ID precisa estar preenchido para atualizar."})
+            return Response({"message": "ID precisa estar preenchido para atualizar."},status=status.HTTP_400_BAD_REQUEST)
         return super().update(request, *args, **kwargs)
 
 
@@ -137,11 +135,11 @@ class Caixa_FestaListCreate(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         if not festa_atual:
-            raise ValidationError({"message": "Nenhuma festa atual disponível para associar."})
+            return Response({"message": "Nenhuma festa atual disponível para associar."},status=status.HTTP_400_BAD_REQUEST)
         
         user_caixa = serializer.validated_data.get('user_caixa')
         if Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user_caixa).exists():
-            raise ValidationError({"message": "Este caixa já está associado à festa atual."})
+            return Response({"message": "Este caixa já está associado à festa atual."},status=status.HTTP_400_BAD_REQUEST)
         
         serializer.save(festa=festa_atual)
 
@@ -165,14 +163,12 @@ class CartaoListCreate(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         quantidade = request.data.get('quantidade')
 
-        # Verifique se a quantidade é um número válido
         if not quantidade or not isinstance(quantidade, int) or quantidade <= 0:
             return Response({'error': 'A quantidade deve ser um número inteiro maior que zero.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Criar cartões para o cliente com ID 1
         cliente_id = 1
         novos_cartoes_ids = []
-        ativo = True;
+        ativo = True
 
         for _ in range(quantidade):
             cartao = Cartao(cliente_id=cliente_id,ativo=ativo)
@@ -248,15 +244,24 @@ class EstoqueListCreate(generics.ListCreateAPIView):
     permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
-        
-        return Estoque.objects.filter()
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        if festa_atual:
+            return Estoque.objects.filter(festa=festa_atual)
+        else:
+            return Estoque.objects.none();
 
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            print(serializer.errors)
 
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+        
+        if festa_atual:
+            if serializer.is_valid():
+                serializer.save(festa=festa_atual)
+            else:
+                print(serializer.errors)
+        else:
+           return Response({"message": "Nenhuma festa em aberto."},status=status.HTTP_400_BAD_REQUEST)
+        
 
 class EstoqueDelete(generics.DestroyAPIView):
     serializer_class = EstoqueSerializer
@@ -335,55 +340,94 @@ class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         if festa_atual:
             barraca_id = self.request.query_params.get('barraca', None)
-
             if barraca_id:
                 return Movimentacao_Barraca.objects.filter(barraca=barraca_id)
-            else:
-                return Movimentacao_Barraca.objects.all()
-        else:
-            return Movimentacao_Barraca.objects.none()
+            return Movimentacao_Barraca.objects.all()
+        return Movimentacao_Barraca.objects.none()
 
-    def perform_create(self, serializer):
+    def post(self, request, *args, **kwargs):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
 
-        if festa_atual:
-            barracas_do_usuario = Barraca_Festa.objects.filter(user_responsavel=self.request.user, festa=festa_atual)
+        if not festa_atual:
+            return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not barracas_do_usuario.exists():
-                raise ValidationError({"message": "O usuário não possui barracas associadas a esta festa."})
+        barracas_do_usuario = Barraca_Festa.objects.filter(user_responsavel=request.user, festa=festa_atual)
+        if not barracas_do_usuario.exists():
+            return Response({"message": "O usuário não possui barracas associadas a esta festa."}, status=status.HTTP_400_BAD_REQUEST)
 
-            barraca = barracas_do_usuario.first().barraca
+        barraca = barracas_do_usuario.first().barraca
 
-            cartao_id = self.request.data.get('cartao') 
-            cartao_obj = get_object_or_404(Cartao, id=cartao_id)
+        cartao_id = request.data.get('cartao')
+        cartao_obj = get_object_or_404(Cartao, id=cartao_id)
 
-            total_caixa = Movimentacao_Caixa.objects.filter(cartao=cartao_obj).aggregate(total=models.Sum('valor'))['total'] or 0
-            total_barraca = Movimentacao_Barraca.objects.filter(cartao=cartao_obj).aggregate(total=models.Sum('valor'))['total'] or 0
+        total_caixa = Movimentacao_Caixa.objects.filter(cartao=cartao_obj, festa=festa_atual).aggregate(total=models.Sum('valor'))['total'] or 0
+        total_barraca = Movimentacao_Barraca.objects.filter(cartao=cartao_obj, festa=festa_atual).aggregate(total=models.Sum('valor'))['total'] or 0
+        saldo = total_caixa - total_barraca
 
-            saldo = total_caixa - total_barraca
+        if saldo <= 0:
+            return Response({"message": "Saldo insuficiente."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if saldo <= 0:
-                raise ValidationError({"message": "Saldo insuficiente."})
+        produtos = request.data.get('produtos', None)
+        if not produtos:
+            return Response({"message": "Produtos não fornecidos."}, status=status.HTTP_400_BAD_REQUEST)
 
-            movimentacao_barraca = serializer.save(festa=festa_atual, user_barraca=self.request.user, barraca=barraca)
+        produtos_com_estoque_insuficiente = []
 
-            produtos = self.request.data.get('produtos', None)
+        for produto_data in produtos:
+            produto_id = produto_data.get('produto')
+            qtd_solicitada = produto_data.get('qtd')
 
-            if produtos:
-                for produto_data in produtos:
-                    produto_id = produto_data.get('produto')
-                    qtd = produto_data.get('qtd')
+            produto_obj = get_object_or_404(Produto, id=produto_id)
 
-                    if produto_id and qtd:
-                        Movimentacao_Produto.objects.create(
-                            movimentacao=movimentacao_barraca,
-                            produto_id=produto_id,
-                            qtd=qtd
-                        )
-            else:
-                raise ValidationError({"message": "Produtos não fornecidos."})
-        else:
-            raise ValidationError({"message": "Nenhuma festa em aberto."})
+            if produto_obj.estocavel:
+                total_estoque = Estoque.objects.filter(produto=produto_obj, festa=festa_atual).aggregate(total=models.Sum('quant'))['total'] or 0
+                
+                total_vendido = Movimentacao_Produto.objects.filter(
+                    movimentacao__festa=festa_atual,
+                    produto=produto_obj
+                ).aggregate(total=models.Sum('qtd'))['total'] or 0
+
+                estoque_disponivel = total_estoque - total_vendido
+
+                if total_estoque == 0:
+                    produtos_com_estoque_insuficiente.append({
+                        "produto": produto_obj.nome,
+                        "estoque_disponivel": 0,
+                        "qtd_solicitada": qtd_solicitada,
+                        "mensagem": "Sem estoque disponível."
+                    })
+                elif estoque_disponivel < qtd_solicitada:
+                    produtos_com_estoque_insuficiente.append({
+                        "produto": produto_obj.nome,
+                        "estoque_disponivel": estoque_disponivel,
+                        "qtd_solicitada": qtd_solicitada
+                    })
+
+        if produtos_com_estoque_insuficiente:
+            return Response({
+                "message": "Estoque insuficiente para um ou mais produtos.",
+                "detalhes": produtos_com_estoque_insuficiente
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        movimentacao_barraca = Movimentacao_Barraca(
+            festa=festa_atual,
+            user_barraca=request.user,
+            barraca=barraca,
+            cartao=cartao_obj,
+            valor=request.data.get('valor'),  
+            desc=request.data.get('desc')  
+        )
+        movimentacao_barraca.save()
+
+        for produto_data in produtos:
+            Movimentacao_Produto.objects.create(
+                movimentacao=movimentacao_barraca,
+                produto_id=produto_data.get('produto'),
+                qtd=produto_data.get('qtd')
+            )
+
+        return Response({"message": "Movimentação criada com sucesso!"}, status=status.HTTP_201_CREATED)
+
 
 class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
     serializer_class = Movimentacao_CaixaSerializer
@@ -393,22 +437,21 @@ class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         if festa_atual:
             user_caixa_id = self.request.query_params.get('user_caixa', None)
-            
             if user_caixa_id:
                 return Movimentacao_Caixa.objects.filter(user_caixa=user_caixa_id)
             else:
                 return Movimentacao_Caixa.objects.all()
         else:
-            return Movimentacao_Caixa.objects.none()    
-
+            return Movimentacao_Caixa.objects.none()
 
     def perform_create(self, serializer):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
-        
-        if festa_atual:
-            serializer.save(festa=festa_atual, user_caixa=self.request.user)
-        else:
-            raise ValidationError({"message": "Nenhuma festa em aberto."})
+
+        if not festa_atual:
+            return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save(festa=festa_atual, user_caixa=self.request.user)
+
 
 
 class Movimentacao_CaixaDelete(generics.DestroyAPIView):
@@ -431,7 +474,7 @@ class Produto_FestaListCreate(generics.ListCreateAPIView):
         return Produto_Festa.objects.none()
 
     def post(self, request, *args, **kwargs):
-        festa_id = self.kwargs.get('festa_id')
+        festa_id = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         produto_id = request.data.get('produto')
         
         if Produto_Festa.objects.filter(festa=festa_id, produto=produto_id).exists():
@@ -454,7 +497,7 @@ class Produto_FestaList(generics.ListAPIView):
     permission_classes = [IsInBarracaOrCaixaGroup]
 
     def get_queryset(self):
-        festa_id = self.kwargs.get('festa_id')
+        festa_id = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         barraca_id = self.kwargs.get('barraca_id')
 
         if festa_id is not None:
@@ -475,13 +518,13 @@ class Produto_FestaUpdate(generics.UpdateAPIView):
         try:
             return Produto_Festa.objects.get(pk=self.kwargs['pk'])
         except ObjectDoesNotExist:
-            raise ValidationError({"message": "Produto não encontrado."})
+            return Response({"message": "Produto não encontrado."}, status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         try:
             serializer.save()
         except ValidationError as e:
-            raise ValidationError({"message": e.message_dict})
+            return Response({"message": e.message_dict}, status=status.HTTP_400_BAD_REQUEST)
         
 
 class Produto_FestaDelete(generics.DestroyAPIView):
@@ -558,11 +601,13 @@ class SaldoCartao(APIView):
     permission_classes = [IsInBarracaOrCaixaGroup]
 
     def get(self, request, cartao):
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+
         cartao_obj = get_object_or_404(Cartao, id=cartao)
 
-        total_caixa = Movimentacao_Caixa.objects.filter(cartao=cartao_obj).aggregate(total=models.Sum('valor'))['total'] or 0
+        total_caixa = Movimentacao_Caixa.objects.filter(cartao=cartao_obj, festa=festa_atual).aggregate(total=models.Sum('valor'))['total'] or 0
 
-        total_barraca = Movimentacao_Barraca.objects.filter(cartao=cartao_obj).aggregate(total=models.Sum('valor'))['total'] or 0
+        total_barraca = Movimentacao_Barraca.objects.filter(cartao=cartao_obj, festa=festa_atual).aggregate(total=models.Sum('valor'))['total'] or 0
 
         saldo = total_caixa - total_barraca
 
@@ -752,7 +797,7 @@ class ConfigCartao(generics.GenericAPIView):
             with open(JSON_FILE_PATH, 'r') as f:
                 dados = json.load(f)
         
-        return JsonResponse(dados, safe=False)
+        return Response(dados,  status=status.HTTP_200_OK)  
 
     def post(self, request, *args, **kwargs):
         titulo = request.data.get('titulo')
@@ -762,7 +807,7 @@ class ConfigCartao(generics.GenericAPIView):
         cor_cartao = request.data.get('cor_cartao')
 
         if not all([titulo, fonte, tamanho, cor, cor_cartao]):
-            return JsonResponse({'status': 'erro', 'message': 'Todos os campos são obrigatórios!'}, status=400)
+            return Response({'status': 'erro', 'message': 'Todos os campos são obrigatórios!'}, status=status.HTTP_400_BAD_REQUEST)
 
         dados = {
             'titulo': titulo,
@@ -772,8 +817,7 @@ class ConfigCartao(generics.GenericAPIView):
             'cor_cartao': cor_cartao,
         }
 
-        # Salvar dados no JSON, substituindo o conteúdo anterior
         with open(JSON_FILE_PATH, 'w') as f:
             json.dump(dados, f, indent=4)
 
-        return JsonResponse({'status': 'sucesso', 'message': 'Dados salvos com sucesso!'})
+        return Response({'status': 'sucesso', 'message': 'Dados salvos com sucesso!'}, status=status.HTTP_200_OK)  

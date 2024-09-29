@@ -148,9 +148,10 @@ class ClienteSerializer(serializers.ModelSerializer):
 
 
 class EstoqueSerializer(serializers.ModelSerializer):
+    produto_nome = serializers.CharField(source='produto.nome', read_only=True)
     class Meta:
         model = Estoque
-        fields = ["id", "produto", "quant", "data", "festa"]  
+        fields = ["id", "produto", "produto_nome", "quant", "data", "festa"]  
         read_only_fields = ["festa"]  
 
 

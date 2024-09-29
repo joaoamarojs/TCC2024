@@ -60,6 +60,7 @@ function ProtectedRoute() {
                 setUser(data);
             } else {
                 setError('Falhou em capturar os dados do usuario');
+                refreshToken();
             }
         } catch (error) {
             setError(error.message);

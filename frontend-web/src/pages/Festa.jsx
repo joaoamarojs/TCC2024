@@ -18,6 +18,7 @@ function Festa(){
     const [alertsBarracas, setAlertsBarracas] = useState([]);
     const [alertsCaixas, setAlertsCaixas] = useState([]);
     const [alertsProdutos, setAlertsProdutos] = useState([]);
+    const [alertsEstoques, setAlertsEstoques] = useState([]);
     const [festa, setFesta] = useState(null);
     const [error, setError] = useState(null);
     const [barracasUsuarios, setBarracasUsuarios] = useState([]);
@@ -27,11 +28,15 @@ function Festa(){
     const [produtos_festa, setProdutos_Festa] = useState([]);
     const [barracasFesta, setBarracasFesta] = useState([]);
     const [caixasFesta, setCaixasFesta] = useState([]);
-    const [valor, setValor] = useState(null);
+    const [produtos_estoque, setProdutosEstoque] = useState([]);
+    const [valor, setValor] = useState('');
+    const [quant, setQuant] = useState('');
+    const [data, setData] = useState('');
     const [selectedProduto, setSelectedProduto] = useState(null);
     const [selectedBarraca, setSelectedBarraca] = useState(null);
     const [selectedCaixa, setSelectedCaixa] = useState(null);
     const [selectedUserResponsavel, setSelectedUserResponsavel] = useState(null);
+    const [selectedProdutoEstoque, setSelectedProdutoEstoque] = useState(null);
 
     useEffect(() => {
         getFesta();
@@ -118,8 +123,19 @@ function Festa(){
     const getProdutos_Festa = async () => {
         if(festa){
             try {
-                const response = await api.get(`/api/produto_festa/${festa.id}/`);
+                const response = await api.get(`/api/produto_festa/`);
                 setProdutos_Festa(response.data);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    };
+
+    const getProdutosEstoque = async () => {
+        if(festa){
+            try {
+                const response = await api.get(`/api/estoque/`);
+                setProdutosEstoque(response.data);
             } catch (err) {
                 console.error(err);
             }
@@ -174,6 +190,16 @@ function Festa(){
         ]);
     };
 
+    const addAlertsEstoques = (alert) => {
+        setAlertsEstoques(prevAlerts => [
+            ...prevAlerts,
+            { 
+                id: Date.now(), 
+                ...alert 
+            }
+        ]);
+    };
+
     const handleSubmitFesta = async (e) => {
         e.preventDefault();
         
@@ -209,6 +235,9 @@ function Festa(){
             case '#atribuirValorProdutos':
                 getProdutos();
                 getProdutos_Festa();
+            case '#atribuirEstoques':
+                getProdutos();
+                getProdutosEstoque();
         }
     }
 
@@ -288,7 +317,7 @@ function Festa(){
         e.preventDefault();
         if(selectedProduto !== null){
             try {
-                await api.post(`/api/produto_festa/${festa.id}/`, { produto: parseInt(selectedProduto, 10), valor: valor });
+                await api.post(`/api/produto_festa/`, { produto: parseInt(selectedProdutoEstoque, 10), valor: valor });
                 addAlertProdutos({ type: 'alert-success', title: 'Sucesso!', body: 'Valor adicionado com sucesso!' });
                 getProdutos();
                 getProdutos_Festa();
@@ -297,6 +326,24 @@ function Festa(){
             }
         }else{
             addAlertProdutos({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
+        }
+    };
+
+    const handleAddEstoqueProduto = async (e) => {
+        e.preventDefault();
+        if(selectedProdutoEstoque !== null){
+            try {
+                await api.post(`/api/estoque/`, { produto: parseInt(selectedProdutoEstoque, 10), quant: quant, data: data });
+                addAlertProdutos({ type: 'alert-success', title: 'Sucesso!', body: 'Estoque adicionado com sucesso!' });
+                getProdutos();
+                getProdutosEstoque();
+                setData('');
+                setQuant('');
+            } catch (error) {
+                addAlertsEstoques({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar estoque. Erro: '+error.response.data.message  });
+            }
+        }else{
+            addAlertsEstoques({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
         }
     };
 
@@ -319,7 +366,7 @@ function Festa(){
             getCaixas();
             getCaixasFesta();
         } catch (error) {
-            addAlertCaixa({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao remover a caixa. Erro: '+error.response.data.message });
+            addAlertCaixa({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao remover caixa. Erro: '+error.response.data.message });
         }
     };
 
@@ -330,7 +377,17 @@ function Festa(){
             getProdutos_Festa();
             getProdutos();
         } catch (error) {
-            addAlertProdutos({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao remover a caixa. Erro: '+error.response.data.message });
+            addAlertProdutos({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao remover o valor do produto. Erro: '+error.response.data.message });
+        }
+    };
+    const handleDeleteEstoqueProduto = async (produto) => {
+        try {
+            await api.delete(`/api/estoque/delete/${produto.id}/`);
+            addAlertsEstoques({ type: 'alert-success', title: 'Sucesso!', body: 'Estoque de Produto removido com sucesso!' });
+            getProdutosEstoque();
+            getProdutos();
+        } catch (error) {
+            addAlertsEstoques({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao remover o estoque. Erro: '+error.response.data.message });
         }
     };
 
@@ -377,6 +434,7 @@ function Festa(){
                                         <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirBarracas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-building"></i> Atribuir Barracas</button>
                                         <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirCaixas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-id-badge"></i> Atribuir Caixas</button>
                                         <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirValorProdutos" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-money-bill-alt"></i> Atribuir Valor Produtos</button>
+                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirEstoques" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-cubes"></i> Atribuir Estoques</button>
                                     </div>                                       
                                 </form>
                             </div>
@@ -549,6 +607,70 @@ function Festa(){
                             }
                             footer={<Table headers={[{ label: 'Produto', key: 'produto_nome' },{ label: 'Valor', key: 'valor_formatado' },{ label: 'Actions', key: 'actions' }]} data={produtos_festa} actions={[{ icon: 'trash', func: handleDeleteValorProduto }]} />}
                             onSubmit={handleAddValorProduto}
+                        />
+                        <ModalForm 
+                            className="modal-dialog-centered modal-lg" 
+                            id="atribuirEstoques"
+                            title="Atribuir Estoques"
+                            body={
+                                <div>
+                                    <div className="response">
+                                        {alertsEstoques.map(alert => (
+                                            <Alert
+                                                key={alert.id}
+                                                className={alert.type}
+                                                message={{ title: alert.title, body: alert.body }}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="form-label">Produtos</label>
+                                        <select className="form-select" required onChange={(e) => setSelectedProdutoEstoque(e.target.value)}>
+                                            <option value='none'>Selecione um Produto</option>
+                                            {produtos.filter(produto => produto.estocavel === true)
+                                                .map(produto => (             
+                                                    <option key={produto.id} value={produto.id}>
+                                                        {produto.nome}
+                                                    </option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                    <div className="row">
+                                        <div className="mb-4 col-md-3">
+                                            <label className="form-label">Quantidade</label>
+                                            <input
+                                                type="number"
+                                                id="quant"
+                                                name="quant"
+                                                value={quant}
+                                                onChange={(e) => setQuant(e.target.value)}
+                                                required
+                                                className="form-control"
+                                                placeholder="Quantidade"
+                                            />
+                                        </div>
+                                        <div className="mb-4 col-md-3">
+                                            <label className="form-label">Data</label>
+                                            <input
+                                                type="date"
+                                                id="data"
+                                                name="data"
+                                                value={data}
+                                                onChange={(e) => setData(e.target.value)}
+                                                required
+                                                className="form-control"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mb-4">
+                                        <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus-square align-middle me-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></span> Adicionar</button>
+                                        <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
+                                    </div>
+                                </div>
+                            }
+                            footer={<Table headers={[{ label: 'Produto', key: 'produto_nome' },{ label: 'Quantidade', key: 'quant' },{ label: 'Data', key: 'data' },{ label: 'Actions', key: 'actions' }]} data={produtos_estoque} actions={[{ icon: 'trash', func: handleDeleteEstoqueProduto }]} />}
+                            onSubmit={handleAddEstoqueProduto}
                         />
                     </div>
                 </div>

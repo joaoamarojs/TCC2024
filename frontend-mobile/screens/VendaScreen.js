@@ -188,9 +188,9 @@ const VendaScreen = () => {
   };
 
   const efetuarVenda = async () => {
-    if(cartao.saldo <= 0 && user.funcao === "Barraca"){
-      Alert.alert('Esse cartão está sem saldo!')
-      return;
+    if (cartao.saldo <= 0 && user.funcao === "Barraca") {
+        Alert.alert('Atenção', 'Esse cartão está sem saldo!');
+        return;
     }
 
     if (selectedProdutos.length === 0 && !totalInput) {
@@ -203,10 +203,8 @@ const VendaScreen = () => {
         .join(', ');
 
     const virgula = selectedProdutos.length !== 0 ? ',' : '';
-
-    const descCompleta = totalInput > 0 
-        ? `${desc}${virgula} Valor Manual: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalInput)}`
-        : desc;
+    
+    const descCompleta = totalInput > 0 ? `${desc}${virgula} Valor Manual: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalInput)}` : desc;
 
     const dadosVenda = {
         desc: descCompleta,
@@ -241,25 +239,24 @@ const VendaScreen = () => {
         resetarCampos();
 
     } catch (error) {
-        console.error('Erro ao efetuar venda:', error);
-
         if (error.response) {
-            const { status, data } = error.response;
+            const { data } = error.response;
 
-            if (status === 400) {
-                Alert.alert('Erro', data.message || 'Verifique os dados fornecidos.');
-            } else if (status === 404) {
-                Alert.alert('Erro', 'Festa em aberto não encontrada.');
-            } else if (status === 403) {
-                Alert.alert('Erro', 'Saldo insuficiente.');
+            if (data && data.detalhes) {
+                const produtosComEstoqueInsuficiente = data.detalhes.map((item) => {
+                    return `${item.produto} - Estoque disponível: ${item.estoque_disponivel}, Quantidade solicitada: ${item.qtd_solicitada}`;
+                }).join('\n');
+
+                Alert.alert('Atenção', `Estoque insuficiente para os seguintes produtos:\n${produtosComEstoqueInsuficiente}`);
             } else {
-                Alert.alert('Erro', 'Ocorreu um erro inesperado. Tente novamente.');
+                Alert.alert('Erro', data.message || 'Ocorreu um erro ao efetuar a venda.');
             }
         } else {
-            Alert.alert('Erro', 'Ocorreu um erro ao efetuar a venda. Tente novamente.');
+            Alert.alert('Erro', 'Não foi possível conectar ao servidor. Tente novamente mais tarde.');
         }
     }
 };
+
   
   const resetarCampos = () => {
     setSelectedProdutos([]);
