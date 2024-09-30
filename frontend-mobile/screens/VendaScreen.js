@@ -485,17 +485,20 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     padding: 15,
     borderRadius: 8,
+    elevation: 3,
   },
   textBoxCard: {
     backgroundColor: '#B0DE09',
     alignSelf: 'flex-end',
     padding: 15,
     borderRadius: 8,
+    elevation: 4,
   },
   textBoxTotal: {
     backgroundColor: '#B0DE09',
     padding: 10,
     borderRadius: 8,
+    elevation: 3,
   },
   title: {
     fontSize: 18,
@@ -530,6 +533,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 20,
     height: 280,
+    elevation: 3,
   },
   selectProductsBox: {
     backgroundColor: '#d3d3d3',
@@ -608,7 +612,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: 12,
     paddingHorizontal: 8,
-    color: '#000000'
+    color: '#000000',
+    borderRadius: 5,
   },
   modalView: {
     margin: 20,
@@ -623,7 +628,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 6,
+    elevation: 3,
   },
   modalText: {
     marginBottom: 15,
@@ -646,19 +651,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 12,
+    elevation: 6,
   },
   dropdownButtonTxtStyle: {
     flex: 1,
     fontSize: 18,
     fontWeight: '500',
     color: '#151E26',
-  },
-  dropdownButtonArrowStyle: {
-    fontSize: 28,
-  },
-  dropdownButtonIconStyle: {
-    fontSize: 28,
-    marginRight: 8,
   },
   dropdownMenuStyle: {
     backgroundColor: '#E9ECEF',
@@ -677,10 +676,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '500',
     color: '#151E26',
-  },
-  dropdownItemIconStyle: {
-    fontSize: 28,
-    marginRight: 8,
   },
 });
 

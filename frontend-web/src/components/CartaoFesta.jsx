@@ -16,7 +16,7 @@ const CartaoFesta = ({
           color: textColor,
           fontFamily: fontFamily,
           fontSize: `${fontSize}px`,
-          width: '350px',
+          width: '340px',
           height: '200px',
           borderRadius: '10px',
           padding: '20px',

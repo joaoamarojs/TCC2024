@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 40,
     borderRadius: 8,
+    elevation: 3,
   },
   title: {
     fontSize: 18,

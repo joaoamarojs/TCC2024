@@ -270,8 +270,25 @@ class EstoqueDelete(generics.DestroyAPIView):
     permission_classes = [AdminstrativoGroup]
 
     def get_queryset(self):
-        
-        return Estoque.objects.filter() 
+        return Estoque.objects.filter()
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        produto = instance.produto
+        festa = instance.festa
+
+        total_estoque = Estoque.objects.filter(produto=produto, festa=festa).exclude(id=instance.id).aggregate(total=models.Sum('quant'))['total'] or 0
+
+        total_vendido = Movimentacao_Produto.objects.filter(
+            produto=produto, 
+            movimentacao__festa=festa
+        ).aggregate(total=models.Sum('qtd'))['total'] or 0
+
+        if total_estoque < total_vendido:
+            return Response({"message": "Não é possível excluir o estoque, pois a quantidade vendida supera a quantidade disponível no estoque."},status=status.HTTP_400_BAD_REQUEST)
+
+        return super().delete(request, *args, **kwargs)
 
 
 class FestaListCreate(generics.ListCreateAPIView):
