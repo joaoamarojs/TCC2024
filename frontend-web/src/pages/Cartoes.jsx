@@ -229,7 +229,6 @@ function Cartoes() {
             denyButtonText: "Cancelar",
             showLoaderOnConfirm: true,
             preConfirm: async (quantidade) => {
-                console.log(quantidade)
                 if (!quantidade) {
                     Swal.showValidationMessage('Digite um valor!');
                     return false; 
@@ -323,7 +322,7 @@ function Cartoes() {
 
         document.body.removeChild(hiddenContainer);
 
-        pdf.output('dataurlnewwindow');
+        pdf.save('cartoes_festa.pdf');
         setIsLoadingPDF(false);
     }
   };
@@ -388,10 +387,10 @@ function Cartoes() {
                     <div className="row">
                       <form>
                         <div className="mb-4">
-                          <button type="button" onClick={gerarIndividual} className="btn btn-primary me-2"> Gerar Individual</button>
-                          <button type="button" onClick={gerarNovoLote} className="btn btn-primary me-2"> Gerar Novo Lote</button>
-                          <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#personalizar"> Personalizar</button>
-                          <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#pesquisar"> Pesquisar</button>
+                          <button type="button" onClick={gerarIndividual} className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-cube"></i>  Gerar Individual</button>
+                          <button type="button" onClick={gerarNovoLote} className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-cubes"></i>  Gerar Novo Lote</button>
+                          <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#personalizar"><i className="align-middle me-2 fas fa-fw fa-pencil-ruler"></i> Personalizar</button>
+                          <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#pesquisar"><i className="align-middle me-2 fas fa-fw fa-search"></i> Pesquisar</button>
                         </div>                                       
                       </form>
                     </div>
@@ -453,7 +452,7 @@ function Cartoes() {
                   }
                   footer={                                    
                           <div className="mb-4">
-                              <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-save align-middle me-2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></span> Salvar</button>
+                              <button type="submit" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-save"></i> Salvar</button>
                           </div> 
                   }
                   onSubmit={saveConfigCartao}
@@ -521,7 +520,7 @@ function Cartoes() {
                             </div>
                           </div>
                           <div className="mb-4">
-                            <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus-square align-middle me-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></span> Atualizar</button>
+                            <button type="submit" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-plus-square"></i> Atualizar</button>
                             <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                             <button type="button" className="btn btn-primary me-2" onClick={() => generatePdf([selectedCartaoId])}><i className="align-middle me-2 fas fa-fw fa-print"></i> Imprimir</button>
                           </div>

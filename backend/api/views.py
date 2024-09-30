@@ -248,19 +248,21 @@ class EstoqueListCreate(generics.ListCreateAPIView):
         if festa_atual:
             return Estoque.objects.filter(festa=festa_atual)
         else:
-            return Estoque.objects.none();
+            return Estoque.objects.none()
 
-    def perform_create(self, serializer):
-
+    def post(self, request, *args, **kwargs):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         
         if festa_atual:
+            serializer = self.get_serializer(data=request.data)
             if serializer.is_valid():
                 serializer.save(festa=festa_atual)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 print(serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-           return Response({"message": "Nenhuma festa em aberto."},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_400_BAD_REQUEST)
         
 
 class EstoqueDelete(generics.DestroyAPIView):
@@ -444,13 +446,19 @@ class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
         else:
             return Movimentacao_Caixa.objects.none()
 
-    def perform_create(self, serializer):
+    def post(self, request, *args, **kwargs):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
 
         if not festa_atual:
             return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save(festa=festa_atual, user_caixa=self.request.user)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(festa=festa_atual, user_caixa=self.request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -468,7 +476,7 @@ class Produto_FestaListCreate(generics.ListCreateAPIView):
     permission_classes = [AdminstrativoGroup] 
 
     def get_queryset(self):
-        festa_id = self.kwargs.get('festa_id')
+        festa_id = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         if festa_id is not None:
             return Produto_Festa.objects.filter(festa=festa_id)
         return Produto_Festa.objects.none()
@@ -483,13 +491,13 @@ class Produto_FestaListCreate(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        try:
-            return self.create(request, *args, **kwargs)
-        except IntegrityError:
-            return Response(
-                {"message": "Produto já possui valor."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(festa=festa_id)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
 class Produto_FestaList(generics.ListAPIView):

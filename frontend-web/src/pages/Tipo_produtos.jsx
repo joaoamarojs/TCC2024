@@ -150,7 +150,7 @@ function Tipo_produtos(){
                                     </div>
                                     <div className="mb-4">
                                         <button type="submit" className="btn btn-primary me-2">
-                                            <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-save align-middle me-2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></span>
+                                            <i className="align-middle me-2 fas fa-fw fa-save"></i>
                                             {selectedTipo_produtoId ? "Atualizar" : "Salvar"}
                                         </button>
                                         <button type="reset" className="btn btn-primary me-2" onClick={clearForm}><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>

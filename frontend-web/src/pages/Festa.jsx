@@ -317,7 +317,7 @@ function Festa(){
         e.preventDefault();
         if(selectedProduto !== null){
             try {
-                await api.post(`/api/produto_festa/`, { produto: parseInt(selectedProdutoEstoque, 10), valor: valor });
+                await api.post(`/api/produto_festa/`, { produto: parseInt(selectedProduto, 10), valor: valor });
                 addAlertProdutos({ type: 'alert-success', title: 'Sucesso!', body: 'Valor adicionado com sucesso!' });
                 getProdutos();
                 getProdutos_Festa();
@@ -429,8 +429,8 @@ function Festa(){
                             <div className="card-body">
                                 <form>
                                     <div className="mb-4">
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#iniciarFesta"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus align-middle me-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></span> Iniciar Nova Festa</button>
-                                        <button type="button" onClick={finalizarFesta} className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-lock align-middle me-2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span> Finalizar Festa</button>
+                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#iniciarFesta"><i className="align-middle me-2 fas fa-fw fa-plus"></i> Iniciar Nova Festa</button>
+                                        <button type="button" onClick={finalizarFesta} className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-lock"></i> Finalizar Festa</button>
                                         <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirBarracas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-building"></i> Atribuir Barracas</button>
                                         <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirCaixas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-id-badge"></i> Atribuir Caixas</button>
                                         <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirValorProdutos" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-money-bill-alt"></i> Atribuir Valor Produtos</button>
@@ -478,7 +478,7 @@ function Festa(){
                             }
                             footer={                                    
                                     <div className="mb-4">
-                                        <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-save align-middle me-2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></span> Iniciar</button>
+                                        <button type="submit" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-save"></i> Iniciar</button>
                                         <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                                     </div> 
                             }
@@ -518,7 +518,7 @@ function Festa(){
                                         </select>
                                     </div>
                                     <div className="mb-4">
-                                        <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus-square align-middle me-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></span> Adicionar</button>
+                                        <button type="submit" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-plus-square"></i> Adicionar</button>
                                         <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                                     </div>
                                 </div>    
@@ -551,7 +551,7 @@ function Festa(){
                                         </select>
                                     </div>
                                     <div className="mb-4">
-                                        <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus-square align-middle me-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></span> Adicionar</button>
+                                        <button type="submit" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-plus-square"></i> Adicionar</button>
                                         <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                                     </div>
                                 </div>
@@ -600,7 +600,7 @@ function Festa(){
                                         />
                                     </div>
                                     <div className="mb-4">
-                                        <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus-square align-middle me-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></span> Adicionar</button>
+                                        <button type="submit" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-plus-square"></i> Adicionar</button>
                                         <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                                     </div>
                                 </div>
@@ -664,7 +664,7 @@ function Festa(){
                                         </div>
                                     </div>
                                     <div className="mb-4">
-                                        <button type="submit" className="btn btn-primary me-2"><span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-plus-square align-middle me-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></span> Adicionar</button>
+                                        <button type="submit" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-plus-square"></i> Adicionar</button>
                                         <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                                     </div>
                                 </div>

@@ -227,7 +227,6 @@ const VendaScreen = () => {
 
     try {
         const api = await createApi();
-        console.log(dadosVenda);
 
         if (user.funcao === 'Barraca') {
             await api.post('/api/movimentacao_barraca/', dadosVenda);
