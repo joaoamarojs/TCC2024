@@ -38,8 +38,6 @@ function NavSideBar(props) {
                                 {props.name}
                             </a>
                             <div className='dropdown-menu dropdown-menu-start'>
-                                <a className='dropdown-item' href=''><i className="align-middle me-1"></i> Perfil</a>
-                                <div className="dropdown-divider"></div>
                                 <a className="dropdown-item" href="#" onClick={(e) => handleSelectPage('logout', e)}>Sair</a>
                             </div>
                             <div className="sidebar-user-subtitle">Administrativo</div>

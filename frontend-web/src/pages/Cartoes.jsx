@@ -360,7 +360,7 @@ function Cartoes() {
                   <div className="card-body">
                     <div className="row">
                     {isLoadingCartao ? (
-                        <div style={{ width: "350px", height: "200px", padding: "20px", position: "relative", boxSizing: "border-box", justifyContent: "center", alignItems: "center"}}>
+                        <div style={{ width: "350px", height: "220px", padding: "20px", position: "relative", boxSizing: "border-box", justifyContent: "center", alignItems: "center"}}>
                           <div className="spinner-grow spinner-grow-sm text-dark me-2" role="status">
                             <span className="visually-hidden">Loading...</span>
                           </div>
@@ -375,7 +375,6 @@ function Cartoes() {
                             bgColor={configcartao.cor_cartao}
                             textColor={configcartao.cor}
                             text={configcartao.titulo}
-                            code="1234567"
                             fontSize={configcartao.tamanho}
                             fontFamily={configcartao.fonte}
                           />
@@ -443,7 +442,6 @@ function Cartoes() {
                             bgColor={cor_cartao}
                             textColor={cor}
                             text={titulo}
-                            code="1234567"
                             fontSize={tamanho}
                             fontFamily={fonte}
                           />

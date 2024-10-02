@@ -14,7 +14,6 @@ const VendaScreen = () => {
   const navigation = useNavigation();
   const [festa, setFesta] = useState(null);
   const [produtos_festa, setProdutos_Festa] = useState([]);
-  const [erro, setErro] = useState(null);
   const [valor, setValor] = useState('');
   const [totalInput, setTotalInput] = useState('0');
   const [total, setTotal] = useState('0.00');
@@ -53,10 +52,9 @@ const VendaScreen = () => {
     try {
         const response = await api.get("/api/festa-atual/");
         setFesta(response.data);
-        setErro(null);
     } catch (err) {
         console.error(err);
-        setErro(err.response.data.message || "Ocorreu um erro ao buscar a festa.");
+        Alert.alert(err.response.data.message || "Ocorreu um erro ao buscar a festa.");
         setFesta(null);
     }
   };
@@ -66,12 +64,9 @@ const VendaScreen = () => {
     try {
         const response = await api.get(`/api/saldo-cartao/${data.code}/`);
         setCartao(response.data);
-        setErro(null);
         setScanning(false);
     } catch (err) {
-        console.error(err);
-        setErro(err.response.data.message || "Ocorreu um erro ao buscar cartão.");
-        setCartao(null);
+        Alert.alert(err.response.data.message || "Ocorreu um erro ao buscar cartão.");
         setScanning(false);
     }
   };
@@ -233,8 +228,12 @@ const VendaScreen = () => {
         } else if (user.funcao === 'Caixa') {
             await api.post('/api/movimentacao_caixa/', dadosVenda);
         }
-
-        Alert.alert('Sucesso', 'Venda realizada com sucesso!');
+        const saldo = new Intl.NumberFormat('pt-BR', {style: 'currency',currency: 'BRL', }).format(cartao.saldo);
+        const sinal = user.funcao == 'Barraca' ? '-' : '+';
+        const valor = new Intl.NumberFormat('pt-BR', {style: 'currency',currency: 'BRL', }).format(dadosVenda.valor);
+        const resultado = new Intl.NumberFormat('pt-BR', {style: 'currency',currency: 'BRL', }).format(user.funcao == 'Barraca' ? parseFloat(cartao.saldo) - parseFloat(dadosVenda.valor) : parseFloat(cartao.saldo) + parseFloat(dadosVenda.valor));
+        const saldores = `${saldo} ${sinal} ${valor} = ${resultado}` 
+        Alert.alert('Sucesso', `Venda realizada com sucesso! \n${saldores}`);
         resetarCampos();
 
     } catch (error) {

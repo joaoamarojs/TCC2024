@@ -385,6 +385,9 @@ class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
 
         if saldo <= 0:
             return Response({"message": "Saldo insuficiente."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not cartao_obj.ativo:
+            return Response({"message": "Cartão inativo ou invalido."}, status=status.HTTP_400_BAD_REQUEST)
 
         produtos = request.data.get('produtos', None)
         if not produtos:
@@ -468,6 +471,12 @@ class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
 
         if not festa_atual:
             return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        cartao_id = request.data.get('cartao')
+        cartao_obj = get_object_or_404(Cartao, id=cartao_id)
+
+        if not cartao_obj.ativo:
+            return Response({"message": "Cartão inativo ou invalido."}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -629,6 +638,9 @@ class SaldoCartao(APIView):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
 
         cartao_obj = get_object_or_404(Cartao, id=cartao)
+         
+        if not cartao_obj.ativo:
+            return Response({"message": "Cartão inativo ou invalido."}, status=status.HTTP_400_BAD_REQUEST)
 
         total_caixa = Movimentacao_Caixa.objects.filter(cartao=cartao_obj, festa=festa_atual).aggregate(total=models.Sum('valor'))['total'] or 0
 
