@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { createRoot } from 'react-dom/client';
 import ModalForm from '../components/ModalForm';
 import Alert from "../components/Alert";
@@ -250,7 +250,7 @@ function Cartoes() {
     if (codigos[0]) {
         setIsLoadingPDF(true);
         const pdf = new jsPDF();
-        let positionY = 10;
+        let positionY = 5;
         let positionX = 10;
         const pageHeight = pdf.internal.pageSize.height;
 
@@ -301,14 +301,14 @@ function Cartoes() {
 
                 if (positionY + 50 > pageHeight) {
                     pdf.addPage();
-                    positionY = 10;
+                    positionY = 5;
                 }
 
-                pdf.addImage(imgData, 'PNG', positionX, positionY, 90, 50);
+                pdf.addImage(imgData, 'PNG', positionX, positionY, 88.71, 55);
 
                 if (positionX > 10) {
                     positionX = 10;
-                    positionY += 55;
+                    positionY += 58;
                 } else {
                     positionX = 110;
                 }

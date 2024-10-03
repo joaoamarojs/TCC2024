@@ -15,10 +15,14 @@ function Home(){
     const getFesta = async () => {
         try {
             const response = await api.get("/api/festa-atual/");
-            setFesta(response.data);
-            setError(null);
+            if(response.data.id){
+                setFesta(response.data);
+                setError(null);
+            }else{
+                setError(response.data.message);
+                setFesta(null);
+            }
         } catch (err) {
-            console.error(err);
             setError(err.response.data.message || "Ocorreu um erro ao buscar a festa.");
             setFesta(null);
         }

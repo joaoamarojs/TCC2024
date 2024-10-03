@@ -1,5 +1,3 @@
-import React from 'react';
-
 function ModalForm({ className, id, title, body, footer, onSubmit}) {
   return (
     <form onSubmit={onSubmit}>

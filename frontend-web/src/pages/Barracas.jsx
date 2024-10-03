@@ -79,13 +79,10 @@ function Barracas(){
             })
             .catch((error) => {
             if (error.response && error.response.data) {
-                const errorData = error.response.data;
-                let errorMessage = 'Falhou em salvar barraca. Erro:';
-
                 addAlert({
                     type: 'alert-danger',
                     title: 'Erro!',
-                    body: errorMessage
+                    body: error.response.data || 'Ocorreu um erro ao salvar barraca.'
                 });
             } else {
                 addAlert({

@@ -114,10 +114,6 @@ function Clientes(){
         setAtivo(client.ativo);
     };
 
-    const handleCloseAlert = () => {
-        addAlert(null);
-    };
-
     const clearForm = () => {
         setSelectedClientId(null);
         setNome("");

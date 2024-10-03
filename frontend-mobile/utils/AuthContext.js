@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [navigation]);
 
   const isTokenExpired = (token) => {
     try {

@@ -1,5 +1,3 @@
-import { useEffect, useState, useRef } from "react";
-
 function NavSideBar(props) {
 
     const handleSelectPage = (page, event) => {

@@ -1,5 +1,3 @@
-import React from 'react';
-
 function Modal({ className, id, title, body, footer}) {
   return (
     <div className="modal fade" id={id} tabIndex="-1" role="dialog" aria-hidden="true">

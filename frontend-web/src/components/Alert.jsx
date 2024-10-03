@@ -1,5 +1,3 @@
-import React from 'react';
-
 function Alert({ className, message }) {
   return (
     <div className={`alert ${className} alert-dismissible`} role="alert">

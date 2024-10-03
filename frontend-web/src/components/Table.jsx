@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const Table = ({ headers, data, actions }) => {
   const [searchTerm, setSearchTerm] = useState('');

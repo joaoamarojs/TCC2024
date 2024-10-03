@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const CartaoFesta = ({
     bgColor = '#FF5C5C',
@@ -81,7 +81,6 @@ const CartaoFesta = ({
                     <div style={{ backgroundColor: '#000000', width: '100%', height: '100%' }}></div>
                     <div style={{ backgroundColor: '#000000', width: '100%', height: '100%' }}></div>
                     <div style={{ backgroundColor: '#000000', width: '100%', height: '100%' }}></div>
-                    <div style={{ backgroundColor: '#FFFFFF', width: '100%', height: '100%' }}></div>
                 </div>
             )}
       </div>

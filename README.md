@@ -57,6 +57,8 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
    DB_PORT=5432
 
    SENHA_FECHA_FESTA = 'senha_para_fechar_festa'
+
+   SECRET_KEY = "sua_secret_key"
    ```
 
 5. **Mude o atributo `DEBUG` para `False` em `settings.py`** 

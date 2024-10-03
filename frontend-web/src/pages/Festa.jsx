@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, cloneElement } from "react";
+import { useState, useEffect } from "react";
 import Alert from "../components/Alert";
 import ModalForm from '../components/ModalForm';
 import Table from '../components/Table';
@@ -45,10 +45,14 @@ function Festa(){
     const getFesta = async () => {
         try {
             const response = await api.get("/api/festa-atual/");
-            setFesta(response.data);
-            setError(null);
+            if(response.data.id){
+                setFesta(response.data);
+                setError(null);
+            }else{
+                setError(response.data.message);
+                setFesta(null);
+            }
         } catch (err) {
-            console.error(err);
             setError(err.response.data.message || "Ocorreu um erro ao buscar a festa.");
             setFesta(null);
         }
@@ -431,10 +435,10 @@ function Festa(){
                                     <div className="mb-4">
                                         <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#iniciarFesta"><i className="align-middle me-2 fas fa-fw fa-plus"></i> Iniciar Nova Festa</button>
                                         <button type="button" onClick={finalizarFesta} className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-lock"></i> Finalizar Festa</button>
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirBarracas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-building"></i> Atribuir Barracas</button>
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirCaixas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-id-badge"></i> Atribuir Caixas</button>
+                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirBarracas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-store"></i> Atribuir Barracas</button>
+                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirCaixas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-money-check-alt"></i> Atribuir Caixas</button>
                                         <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirValorProdutos" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-money-bill-alt"></i> Atribuir Valor Produtos</button>
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirEstoques" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-cubes"></i> Atribuir Estoques</button>
+                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirEstoques" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-dolly"></i> Atribuir Estoques</button>
                                     </div>                                       
                                 </form>
                             </div>

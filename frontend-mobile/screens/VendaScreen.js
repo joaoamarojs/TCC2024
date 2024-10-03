@@ -167,7 +167,18 @@ const VendaScreen = () => {
   };
 
   const handleScan = (data) => {
-    getCartao(JSON.parse(data))
+    let res;
+    try {
+        res = JSON.parse(data);
+    } catch (e) {
+        res = { status: 'false' };
+    }
+    if(res.code){
+      getCartao(res);
+    }else{
+      Alert.alert("Cartão invalido!");
+      setScanning(false);
+    }
   };
 
   const startScanning = () => {

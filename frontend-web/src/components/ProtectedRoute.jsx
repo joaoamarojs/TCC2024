@@ -49,8 +49,8 @@ function ProtectedRoute() {
             }
         };
 
-        auth().then(() => fetchUserData().finally(() => setLoading(false)));
-    }, []);
+        if(selectedPage != 'login' || selectedPage != 'logout') auth().then(() => fetchUserData().finally(() => setLoading(false)));
+    }, [selectedPage]);
 
     const fetchUserData = async () => {
         try {

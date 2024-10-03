@@ -316,9 +316,9 @@ class FestaAtual(generics.GenericAPIView):
                 serializer = self.get_serializer(festa_atual)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_200_OK)
         except Festa.DoesNotExist:
-            return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_404_NOT_FOUND)            
+            return Response({"message": "Erro ao buscar festa."}, status=status.HTTP_404_NOT_FOUND)            
 
 
 class FecharFesta(APIView):
@@ -475,8 +475,11 @@ class Movimentacao_CaixaListCreate(generics.ListCreateAPIView):
         cartao_id = request.data.get('cartao')
         cartao_obj = get_object_or_404(Cartao, id=cartao_id)
 
-        if not cartao_obj.ativo:
+        if not cartao_obj.ativo or not cartao_obj:
             return Response({"message": "Cartão inativo ou invalido."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if request.data.get('forma_pagamento') == '':
+            return Response({"message": "Informe uma forma de pagamento."}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -637,7 +640,10 @@ class SaldoCartao(APIView):
     def get(self, request, cartao):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
 
-        cartao_obj = get_object_or_404(Cartao, id=cartao)
+        try:
+            cartao_obj = Cartao.objects.get(id=cartao)
+        except Cartao.DoesNotExist:
+            return Response({"message": "Cartão inativo ou invalido."}, status=status.HTTP_404_NOT_FOUND)
          
         if not cartao_obj.ativo:
             return Response({"message": "Cartão inativo ou invalido."}, status=status.HTTP_400_BAD_REQUEST)
