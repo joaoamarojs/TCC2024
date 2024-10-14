@@ -383,7 +383,7 @@ class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):
         total_barraca = Movimentacao_Barraca.objects.filter(cartao=cartao_obj, festa=festa_atual).aggregate(total=models.Sum('valor'))['total'] or 0
         saldo = total_caixa - total_barraca
 
-        if saldo <= 0:
+        if saldo <= 0 or saldo < request.data.get('valor'):
             return Response({"message": "Saldo insuficiente."}, status=status.HTTP_400_BAD_REQUEST)
         
         if not cartao_obj.ativo:

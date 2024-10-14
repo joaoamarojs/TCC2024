@@ -20,7 +20,7 @@ function NavSideBar(props) {
     return (
         <nav id="sidebar" className="sidebar js-sidebar">
             <div className="sidebar-content js-simplebar" data-simplebar="init">
-                <a className='sidebar-brand' href='index.html'>
+                <a className='sidebar-brand' href='/'>
                     <span className="sidebar-brand-text align-middle">
                         <img style={{ display: 'flex', width: '215px' }} src="/img/logote.png" alt="TDM-Logo" />
                     </span>
@@ -29,7 +29,7 @@ function NavSideBar(props) {
                 <div className="sidebar-user">
                     <div className="d-flex justify-content-center">
                         <div className="flex-shrink-0">
-                            <img src="/img/avatar.jpg" className="avatar img-fluid rounded me-1" alt="Charles Hall" />
+                            <img src="/img/avatar.jpg" className="avatar img-fluid rounded me-1" alt="Usuario" />
                         </div>
                         <div className="flex-grow-1 ps-2">
                             <a className="sidebar-user-title dropdown-toggle" href="#" data-bs-toggle="dropdown">
