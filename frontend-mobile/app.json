@@ -19,13 +19,17 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.sicaef.mobile"
+      "package": "com.sicaef.mobile",
+      "permissions": [
+        "INTERNET"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [ "expo-build-properties", { "android": { "usesCleartextTraffic": true } } ] 
     ],
     "extra": {
       "eas": {

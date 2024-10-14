@@ -66,8 +66,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (token) => {
-    await AsyncStorage.setItem(ACCESS_TOKEN, token);
-    setIsAuthenticated(true);
+    if(token){
+      await AsyncStorage.setItem(ACCESS_TOKEN, token);
+      setIsAuthenticated(true);
+    }else{
+      console.error('Erro token nulo');
+      setIsAuthenticated(false);
+    }
   };
 
   const logout = async () => {

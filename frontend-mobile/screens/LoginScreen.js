@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { useContext } from 'react';
 import { AuthContext } from '../utils/AuthContext';
+import { API_URL } from '../utils/constants'; 
 
 const LoginScreen = () => {
   const { login } = useContext(AuthContext);
@@ -17,7 +18,7 @@ const LoginScreen = () => {
   const navigation = useNavigation();
 
   const openModal = async () => {
-    const savedUrl = await AsyncStorage.getItem('apiUrl');
+    const savedUrl = await AsyncStorage.getItem(API_URL);
     if (savedUrl) {
       setApiUrl(savedUrl);
     }
@@ -33,14 +34,15 @@ const LoginScreen = () => {
       Alert.alert('Erro', 'Por favor, insira um endereço de API válido.');
       return;
     }
-    await AsyncStorage.setItem('apiUrl', apiUrl);
+    await AsyncStorage.setItem(API_URL, apiUrl);
     closeModal();
   };
 
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`${await AsyncStorage.getItem('apiUrl')}/api/token/`, {
+      const apiUrl = await AsyncStorage.getItem(API_URL);
+      const response = await axios.post(`${apiUrl}/api/token/`, {
         username,
         password,
       }, {
@@ -57,7 +59,7 @@ const LoginScreen = () => {
       if (error.response && error.response.data && error.response.data.detail) {
           Alert.alert(error.response.data.detail);
       } else {
-          Alert.alert('Erro', 'Erro ao conectar à API.');
+          Alert.alert('Erro', 'Erro ao conectar à API. Erro: '+ error);
       }
     } finally {
       setLoading(false);

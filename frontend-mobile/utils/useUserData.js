@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createApi from './api';
+import { ACCESS_TOKEN } from './constants';
 
 function useUserData() {
     const [user, setUser] = useState(null);
@@ -10,7 +11,7 @@ function useUserData() {
 
     // Função para buscar dados do usuário
     const fetchUserData = async () => {
-        const token = await AsyncStorage.getItem('accessToken');
+        const token = await AsyncStorage.getItem(ACCESS_TOKEN);
         if (token) {
             try {
                 const api = await createApi(); 

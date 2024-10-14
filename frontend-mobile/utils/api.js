@@ -1,9 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ACCESS_TOKEN } from './constants'; 
+import { ACCESS_TOKEN, API_URL } from './constants'; 
 
 const createApi = async () => {
-    const apiUrl = await AsyncStorage.getItem('apiUrl');
+    const apiUrl = await AsyncStorage.getItem(API_URL);
     const apiInstance = axios.create({
         baseURL: apiUrl,
     });
