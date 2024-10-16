@@ -20,6 +20,7 @@ urlpatterns = [
     path("estoque/delete/<int:pk>/", views.EstoqueDelete.as_view(), name="delete-estoque"),
     path("festa/", views.FestaListCreate.as_view(), name="festa-list"),
     path('festa-atual/', views.FestaAtual.as_view(), name='festa-atual'),
+    path('festa-atual/info/', views.FestaAtualInfo.as_view(), name='festa-atual-info'),
     path('festa-atual/valida-user/', views.ValidaUser.as_view(), name='valida_user'),
     path('fechar-festa/', views.FecharFesta.as_view(), name='fechar-festa'),
     path("festa/delete/<int:pk>/", views.FestaDelete.as_view(), name="delete-festa"),

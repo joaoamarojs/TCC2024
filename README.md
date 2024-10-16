@@ -160,7 +160,13 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
    npm install  
    ```
 
-3. **Inicie o Servidor Expo**
+3. **Instale o EAS**
+
+   ```bash
+   npm install -g eas-cli 
+   ```   
+
+4. **Inicie o Servidor Expo**
 
    ```bash
    expo start
@@ -173,11 +179,14 @@ Este documento fornece instruções para exportar e instalar um sistema com as s
    Para gerar a versão de produção, execute:
 
    ```bash
-   expo build:android  # Para Android
-   expo build:ios      # Para iOS
+   eas login
    ```
 
-   Siga as instruções para configurar as credenciais e concluir o processo de build.
+   Insira suas credenciais do EAS e depois execute:
+
+   ```bash
+   eas build -p android --profile production --clear-cache
+   ```
 
 ---
 

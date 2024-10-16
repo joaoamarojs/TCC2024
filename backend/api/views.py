@@ -318,8 +318,98 @@ class FestaAtual(generics.GenericAPIView):
             else:
                 return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_200_OK)
         except Festa.DoesNotExist:
-            return Response({"message": "Erro ao buscar festa."}, status=status.HTTP_404_NOT_FOUND)            
+            return Response({"message": "Erro ao buscar festa."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
 
+
+class FestaAtualInfo(APIView):
+    permission_classes = [AdminstrativoGroup]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # Buscar a festa atual (a mais recente que não foi fechada)
+            festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+
+            # Buscar a festa anterior (imediatamente antes da festa atual)
+            festa_anterior = Festa.objects.filter(fechada=True, data_inicio__lt=festa_atual.data_inicio).order_by('-data_inicio').first() if festa_atual else None
+
+            if festa_atual:
+                # Barracas e caixas ativas
+                barracas_ativas = Barraca_Festa.objects.filter(festa=festa_atual, barraca__ativo=True).count()
+                caixas_ativas = Caixa_Festa.objects.filter(festa=festa_atual).count()
+                cartoes_ativos = Cartao.objects.filter(ativo=True).count()
+
+                # Listar todos os produtos da festa atual
+                produtos_festa_atual = Produto_Festa.objects.filter(festa=festa_atual).select_related('produto')
+
+                # Listar todos os produtos e movimentações da festa atual
+                movimentacoes_atual = Movimentacao_Produto.objects.filter(movimentacao__festa=festa_atual).values('produto__nome').annotate(
+                    qtd_vendida_atual=models.Sum('qtd', output_field=models.IntegerField())  # Definindo o tipo de saída como IntegerField
+                )
+
+                # Produtos vendidos na festa anterior
+                movimentacoes_anterior = {}
+                if festa_anterior:
+                    movimentacoes_anterior = Movimentacao_Produto.objects.filter(movimentacao__festa=festa_anterior).values('produto__nome').annotate(
+                        qtd_vendida_anterior=models.Sum('qtd', output_field=models.IntegerField())  # Definindo o tipo de saída como IntegerField
+                    )
+                    # Converter para dicionário
+                    movimentacoes_anterior = {item['produto__nome']: item['qtd_vendida_anterior'] for item in movimentacoes_anterior}
+
+                # Preparar os arrays de produtos e quantidades
+                produtos = []
+                qtd_vendida_atual = []
+                qtd_vendida_anterior = []
+
+                for produto_festa in produtos_festa_atual:
+                    produto_nome = produto_festa.produto.nome
+                    qtd_atual = next((mov['qtd_vendida_atual'] for mov in movimentacoes_atual if mov['produto__nome'] == produto_nome), 0)
+                    qtd_anterior = movimentacoes_anterior.get(produto_nome, 0)
+
+                    produtos.append(produto_nome)
+                    qtd_vendida_atual.append(qtd_atual)
+                    qtd_vendida_anterior.append(qtd_anterior)
+
+                # Todas as barracas associadas à festa atual
+                barracas_festa_atual = Barraca_Festa.objects.filter(festa=festa_atual).select_related('barraca')
+
+                # Total de vendas por barraca na festa atual, utilizando Coalesce para valores vazios
+                vendas_barracas = Movimentacao_Barraca.objects.filter(festa=festa_atual).values('barraca__nome').annotate(
+                    total_vendas=models.functions.Coalesce(models.Sum('valor', output_field=models.DecimalField()), models.Value(0), output_field=models.DecimalField())  # Definindo o tipo de saída como DecimalField
+                )
+
+                # Converter vendas para dicionário
+                vendas_barracas_dict = {venda['barraca__nome']: venda['total_vendas'] for venda in vendas_barracas}
+
+                # Preparar os arrays de barracas e vendas
+                nomes_barracas = []
+                total_vendas_barracas = []
+
+                for barraca_festa in barracas_festa_atual:
+                    barraca_nome = barraca_festa.barraca.nome
+                    total_vendas = vendas_barracas_dict.get(barraca_nome, 0)
+
+                    nomes_barracas.append(barraca_nome)
+                    total_vendas_barracas.append(float(total_vendas))  # Converter para numérico
+
+                # Montar os dados para resposta
+                data = {
+                    'festa': festa_atual.nome,
+                    'barracas_ativas': barracas_ativas,
+                    'caixas_ativas': caixas_ativas,
+                    'cartoes_ativos': cartoes_ativos,
+                    'produtos': produtos,
+                    'qtd_vendida_atual': qtd_vendida_atual,
+                    'qtd_vendida_anterior': qtd_vendida_anterior,
+                    'nomes_barracas': nomes_barracas,
+                    'total_vendas_barracas': total_vendas_barracas,
+                }
+
+                return Response(data, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"message": f"Erro ao buscar festa: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class FecharFesta(APIView):
     permission_classes = [AdminstrativoGroup] 
