@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -130,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "pt-br"
 
 TIME_ZONE = "UTC"
 
@@ -153,7 +153,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',  # Seu frontend em desenvolvimento
     'http://localhost:4173',
     'http://localhost',
-    'http://192.168.15.15'
+    'http://192.168.77.124'
 ]
 
 CORS_ALLOW_CREDENTIALS = True

@@ -5,6 +5,7 @@ import api from "../api";
 
 function Tipo_produtos(){
 
+    const [isLoading, setIsLoading] = useState(false);
     const [alerts, setAlerts] = useState([]);
     const [tipo_produtos, setTipo_produtos] = useState([]);
     const [nome, setNome] = useState("");
@@ -38,6 +39,7 @@ function Tipo_produtos(){
     };
 
     const deleteTipo_produto = (id) => {
+        setIsLoading(true);
         api.delete(`/api/tipo_produto/delete/${id}/`)
             .then((res) => {
                 if (res.status === 204) {
@@ -54,10 +56,12 @@ function Tipo_produtos(){
                 type: 'alert-danger',
                 title: 'Erro!',
                 body: 'Falhou em deletar usuário. Erro: '+error
-            }));
+            }))
+            .finally(() => setIsLoading(false));
     };
 
     const createTipo_produto = (e) => {
+        setIsLoading(true);
         e.preventDefault();
         const endpoint = selectedTipo_produtoId ? `/api/tipo_produto/${selectedTipo_produtoId}/` : "/api/tipo_produto/";
         const method = selectedTipo_produtoId ? 'put' : 'post';
@@ -96,7 +100,8 @@ function Tipo_produtos(){
                     body: 'Falhou em salvar tipo_produto. Erro desconhecido.'
                 });
             }
-        });
+            })
+            .finally(()=>setIsLoading(false));
     };
 
     const editTipo_produto = (tipo_produto) => {
@@ -121,6 +126,13 @@ function Tipo_produtos(){
 
     return (
             <div className="container-fluid p-0">
+            {isLoading && (
+                <div className="loading-overlay">
+                  <div className="spinner-border text-info" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              )}
                 <div className="row mb-2 mb-xl-3">
                     <div className="col-auto d-none d-sm-block">
                         <h3>Tipos de Produtos</h3>

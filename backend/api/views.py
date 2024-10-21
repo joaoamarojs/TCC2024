@@ -60,12 +60,32 @@ class Barraca_FestaListCreate(generics.ListCreateAPIView):
         except Festa.DoesNotExist:
             return Barraca_Festa.objects.none()
 
+    def list(self, request, *args, **kwargs):
+        relatorio = self.request.query_params.get('relatorio', 'false').lower() == 'true'
+        festa = self.request.query_params.get('festa')
+
+        if relatorio:
+            festa = Festa.objects.filter(id=festa).first()
+            if festa:
+                queryset = Barraca_Festa.objects.filter(festa=festa).select_related('barraca').values(
+                    'barraca__id', 'barraca__nome'
+                ).distinct()
+
+                barracas_unicas = list(queryset)
+
+                return Response(barracas_unicas, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Nenhuma festa atual disponível."}, status=status.HTTP_200_OK)
+        
+        # Comportamento padrão, caso relatorio=false ou não esteja presente
+        return super().list(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         if festa_atual:
             serializer.save(festa=festa_atual)
         else:
-            return Response({"message": ["Nenhuma festa atual disponível para associar."]},status=status.HTTP_400_BAD_REQUEST)   
+            return Response({"message": ["Nenhuma festa atual disponível para associar."]}, status=status.HTTP_400_BAD_REQUEST)
         
 
 class Barraca_FestaDelete(generics.DestroyAPIView):
@@ -131,6 +151,27 @@ class Caixa_FestaListCreate(generics.ListCreateAPIView):
     def get_queryset(self):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         return Caixa_Festa.objects.filter(festa=festa_atual) if festa_atual else Caixa_Festa.objects.none()
+    
+    def list(self, request, *args, **kwargs):
+        relatorio = self.request.query_params.get('relatorio', 'false').lower() == 'true'
+        festa_id = self.request.query_params.get('festa')
+
+        # Verifica se o parâmetro 'festa' foi passado
+        if festa_id and relatorio:
+            festa = Festa.objects.filter(id=festa_id).first()
+            if festa:
+                # Filtra os caixas relacionados à festa
+                queryset = Caixa_Festa.objects.filter(festa=festa).select_related('user_caixa').values(
+                    'id', 'user_caixa__username', 'iniciado', 'finalizado', 'troco_inicial'
+                )
+                caixas_festa = list(queryset)
+
+                return Response(caixas_festa, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Festa não encontrada."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Comportamento padrão se nenhum parâmetro 'festa' for passado
+        return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
@@ -151,6 +192,15 @@ class Caixa_FestaDelete(generics.DestroyAPIView):
     def get_queryset(self):
         
         return Caixa_Festa.objects.filter()
+    
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if instance.iniciado:
+            return Response({"message": "Caixa já iniciado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        instance.delete()
+        return Response({"message": "Caixa excluído com sucesso."}, status=status.HTTP_204_NO_CONTENT)
 
 
 class CartaoListCreate(generics.ListCreateAPIView):
@@ -326,36 +376,28 @@ class FestaAtualInfo(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            # Buscar a festa atual (a mais recente que não foi fechada)
             festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
 
-            # Buscar a festa anterior (imediatamente antes da festa atual)
             festa_anterior = Festa.objects.filter(fechada=True, data_inicio__lt=festa_atual.data_inicio).order_by('-data_inicio').first() if festa_atual else None
 
             if festa_atual:
-                # Barracas e caixas ativas
-                barracas_ativas = Barraca_Festa.objects.filter(festa=festa_atual, barraca__ativo=True).count()
+                barracas_ativas = Barraca_Festa.objects.filter(festa=festa_atual, barraca__ativo=True).distinct('barraca').count()  # Usar distinct para evitar duplicidade
                 caixas_ativas = Caixa_Festa.objects.filter(festa=festa_atual).count()
                 cartoes_ativos = Cartao.objects.filter(ativo=True).count()
 
-                # Listar todos os produtos da festa atual
                 produtos_festa_atual = Produto_Festa.objects.filter(festa=festa_atual).select_related('produto')
 
-                # Listar todos os produtos e movimentações da festa atual
                 movimentacoes_atual = Movimentacao_Produto.objects.filter(movimentacao__festa=festa_atual).values('produto__nome').annotate(
-                    qtd_vendida_atual=models.Sum('qtd', output_field=models.IntegerField())  # Definindo o tipo de saída como IntegerField
+                    qtd_vendida_atual=models.Sum('qtd', output_field=models.IntegerField())
                 )
 
-                # Produtos vendidos na festa anterior
                 movimentacoes_anterior = {}
                 if festa_anterior:
                     movimentacoes_anterior = Movimentacao_Produto.objects.filter(movimentacao__festa=festa_anterior).values('produto__nome').annotate(
-                        qtd_vendida_anterior=models.Sum('qtd', output_field=models.IntegerField())  # Definindo o tipo de saída como IntegerField
+                        qtd_vendida_anterior=models.Sum('qtd', output_field=models.IntegerField())
                     )
-                    # Converter para dicionário
                     movimentacoes_anterior = {item['produto__nome']: item['qtd_vendida_anterior'] for item in movimentacoes_anterior}
 
-                # Preparar os arrays de produtos e quantidades
                 produtos = []
                 qtd_vendida_atual = []
                 qtd_vendida_anterior = []
@@ -369,18 +411,14 @@ class FestaAtualInfo(APIView):
                     qtd_vendida_atual.append(qtd_atual)
                     qtd_vendida_anterior.append(qtd_anterior)
 
-                # Todas as barracas associadas à festa atual
-                barracas_festa_atual = Barraca_Festa.objects.filter(festa=festa_atual).select_related('barraca')
+                barracas_festa_atual = Barraca_Festa.objects.filter(festa=festa_atual).select_related('barraca').distinct('barraca')
 
-                # Total de vendas por barraca na festa atual, utilizando Coalesce para valores vazios
                 vendas_barracas = Movimentacao_Barraca.objects.filter(festa=festa_atual).values('barraca__nome').annotate(
-                    total_vendas=models.functions.Coalesce(models.Sum('valor', output_field=models.DecimalField()), models.Value(0), output_field=models.DecimalField())  # Definindo o tipo de saída como DecimalField
+                    total_vendas=models.functions.Coalesce(models.Sum('valor', output_field=models.DecimalField()), models.Value(0), output_field=models.DecimalField()) 
                 )
 
-                # Converter vendas para dicionário
                 vendas_barracas_dict = {venda['barraca__nome']: venda['total_vendas'] for venda in vendas_barracas}
 
-                # Preparar os arrays de barracas e vendas
                 nomes_barracas = []
                 total_vendas_barracas = []
 
@@ -389,9 +427,8 @@ class FestaAtualInfo(APIView):
                     total_vendas = vendas_barracas_dict.get(barraca_nome, 0)
 
                     nomes_barracas.append(barraca_nome)
-                    total_vendas_barracas.append(float(total_vendas))  # Converter para numérico
+                    total_vendas_barracas.append(float(total_vendas)) 
 
-                # Montar os dados para resposta
                 data = {
                     'festa': festa_atual.nome,
                     'barracas_ativas': barracas_ativas,
@@ -410,6 +447,34 @@ class FestaAtualInfo(APIView):
 
         except Exception as e:
             return Response({"message": f"Erro ao buscar festa: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class FecharCaixa(APIView):
+    permission_classes = [AdminstrativoGroup] 
+    def post(self, request, *args, **kwargs):
+
+        festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+
+        if festa_atual:    
+            caixa = request.data.get('caixa')
+            troco = request.data.get('troco_final')
+
+            if not caixa:
+                return Response({"message": "Caixa não fornecido."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not troco:
+                return Response({"message": "Troco final não fornecido."}, status=status.HTTP_400_BAD_REQUEST)
+
+            caixa_festa = Caixa_Festa.objects.filter(id=caixa).first()
+
+            if caixa_festa:
+                caixa_festa.finalizado = True
+                caixa_festa.troco_final = troco
+                caixa_festa.save()
+                return Response({"message": "Caixa fechado com sucesso."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "Caixa não encontrado na festa_atual."}, status=status.HTTP_404_NOT_FOUND)  
+        else:
+            return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_400_BAD_REQUEST)      
 
 class FecharFesta(APIView):
     permission_classes = [AdminstrativoGroup] 
@@ -425,6 +490,14 @@ class FecharFesta(APIView):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
 
         if festa_atual:
+            caixas_abertos = Caixa_Festa.objects.filter(festa=festa_atual, finalizado=False).exists()
+            
+            if caixas_abertos:
+                return Response(
+                    {"message": "Não é possível fechar a festa enquanto houver caixas em aberto."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             festa_atual.fechada = True
             festa_atual.save()
             return Response({"message": "Festa fechada com sucesso."}, status=status.HTTP_200_OK)
@@ -866,11 +939,20 @@ class CustomTokenObtainPairView(APIView):
         elif client_type == 'mobile' and group.id in [1]:
             return Response({'detail': 'Usuarios Administrativos não podem acessar o mobile.'}, status=status.HTTP_403_FORBIDDEN)
         elif client_type == 'mobile' and group.id in [2, 3]:
-            token = RefreshToken.for_user(user)
-            return Response({
-                'access': str(token.access_token),
-                'refresh': str(token)
-            })
+            festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
+            caixa_festa = Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user).first()
+            if group.id in [3] and caixa_festa.finalizado == True:
+                return Response({'detail': 'Caixa Fechado. Obrigado pela colaboração!'}, status=status.HTTP_403_FORBIDDEN)
+            else:
+                if group.id in [3] and caixa_festa.iniciado == False:
+                    caixa_festa.iniciado = True
+                    caixa_festa.save()
+
+                token = RefreshToken.for_user(user)
+                return Response({
+                    'access': str(token.access_token),
+                    'refresh': str(token)
+                })
         elif client_type == 'web' and group.id == 1:
             token = RefreshToken.for_user(user)
             return Response({
@@ -878,7 +960,7 @@ class CustomTokenObtainPairView(APIView):
                 'refresh': str(token)
             })
         else:
-            return Response({'detail': 'Invalid client type.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Tipo de client invalido.'}, status=status.HTTP_400_BAD_REQUEST)
         
 
 class ValidaUser(generics.GenericAPIView):

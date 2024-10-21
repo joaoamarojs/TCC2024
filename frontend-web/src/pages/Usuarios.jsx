@@ -5,6 +5,7 @@ import api from "../api";
 
 function Usuarios() {
 
+  const [isLoading, setIsLoading] = useState(false);
   const [alerts, setAlerts] = useState([]);
   const [users, setUsers] = useState([]);
   const [first_name, setFirst_Name] = useState("");
@@ -59,6 +60,7 @@ function Usuarios() {
   };
 
   const deleteUser = (id) => {
+    setIsLoading(true);
     api.delete(`/api/user/delete/${id}/`)
       .then((res) => {
         if (res.status === 204) addAlert({type: 'alert-success', title: 'Sucesso!', body: 'Usuario deletado com sucesso.'});
@@ -68,7 +70,8 @@ function Usuarios() {
           type: 'alert-danger',
           title: 'Erro!',
           body: 'Falhou em deletar usuário.'+error
-        }));
+      }))
+      .finally(()=>setIsLoading(false));
   };
 
   const createUser = (e) => {
@@ -76,6 +79,7 @@ function Usuarios() {
     const endpoint = selectedUserId ? `/api/user/${selectedUserId}/` : "/api/user/";
     const method = selectedUserId ? 'put' : 'post';
     if(selectedGroup !== 'none'){
+      setIsLoading(true);
       api[method](endpoint, { username, password, first_name, last_name, is_active, groups: [selectedGroup] })
         .then((res) => {
           if (res.status === 201 || res.status === 200) {
@@ -100,7 +104,8 @@ function Usuarios() {
           }
           getUsers();
         })
-        .catch((error) => alert(error));
+        .catch((error) => alert(error))
+        .finally(()=>setIsLoading(false));
     }else{
       addAlert({
         type: 'alert-warning',
@@ -145,6 +150,13 @@ function Usuarios() {
 
   return (
           <div className="container-fluid p-0">
+            {isLoading && (
+                <div className="loading-overlay">
+                  <div className="spinner-border text-info" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              )}
             <div className="row mb-2 mb-xl-3">
               <div className="col-auto d-none d-sm-block">
                 <h3>Usuarios</h3>

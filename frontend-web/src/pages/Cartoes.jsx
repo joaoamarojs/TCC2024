@@ -386,10 +386,10 @@ function Cartoes() {
                     <div className="row">
                       <form>
                         <div className="mb-4">
-                          <button type="button" onClick={gerarIndividual} className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-cube"></i>  Gerar Individual</button>
-                          <button type="button" onClick={gerarNovoLote} className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-cubes"></i>  Gerar Novo Lote</button>
-                          <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#personalizar"><i className="align-middle me-2 fas fa-fw fa-pencil-ruler"></i> Personalizar</button>
-                          <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#pesquisar"><i className="align-middle me-2 fas fa-fw fa-search"></i> Pesquisar</button>
+                          <button type="button" onClick={gerarIndividual} className="btn btn-primary me-2 mt-2"><i className="align-middle me-2 fas fa-fw fa-cube"></i>  Gerar Individual</button>
+                          <button type="button" onClick={gerarNovoLote} className="btn btn-primary me-2 mt-2"><i className="align-middle me-2 fas fa-fw fa-cubes"></i>  Gerar Novo Lote</button>
+                          <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#personalizar"><i className="align-middle me-2 fas fa-fw fa-pencil-ruler"></i> Personalizar</button>
+                          <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#pesquisar"><i className="align-middle me-2 fas fa-fw fa-search"></i> Pesquisar</button>
                         </div>                                       
                       </form>
                     </div>

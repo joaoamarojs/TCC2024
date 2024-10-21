@@ -5,6 +5,7 @@ import api from "../api";
 
 function Barracas(){
 
+    const [isLoading, setIsLoading] = useState(false);
     const [alerts, setAlerts] = useState([]);
     const [barracas, setBarracas] = useState([]);
     const [nome, setNome] = useState("");
@@ -39,8 +40,10 @@ function Barracas(){
     };
 
     const deleteBarraca = (id) => {
+        setIsLoading(true);
         api.delete(`/api/barraca/delete/${id}/`)
             .then((res) => {
+                setIsLoading(false);
                 if (res.status === 204) {
                     addAlert({
                         type: 'alert-success',
@@ -50,15 +53,20 @@ function Barracas(){
                     getBarracas();
                 } 
             })
-            .catch((error) => 
+            .catch((error) => {
             addAlert({
                 type: 'alert-danger',
                 title: 'Erro!',
                 body: 'Falhou em deletar barraca. Erro: '+error
-            }));
+            })
+            .finally(() => {
+                setIsLoading(false);
+            })
+        });
     };
 
     const createBarraca = (e) => {
+        setIsLoading(true);
         e.preventDefault();
         const endpoint = selectedBarracaId ? `/api/barraca/${selectedBarracaId}/` : "/api/barraca/";
         const method = selectedBarracaId ? 'put' : 'post';
@@ -66,6 +74,7 @@ function Barracas(){
         api[method](endpoint, { nome, ativo })
             .then((res) => {
                 if (res.status === 201 || res.status === 200) {
+                    setIsLoading(false);
                     addAlert({
                         type: 'alert-success',
                         title: 'Sucesso!',
@@ -78,20 +87,24 @@ function Barracas(){
                 }
             })
             .catch((error) => {
-            if (error.response && error.response.data) {
-                addAlert({
-                    type: 'alert-danger',
-                    title: 'Erro!',
-                    body: error.response.data || 'Ocorreu um erro ao salvar barraca.'
-                });
-            } else {
-                addAlert({
-                    type: 'alert-danger',
-                    title: 'Erro!',
-                    body: 'Falhou em salvar barraca. Erro desconhecido.'
-                });
-            }
-        });
+                setIsLoading(false);
+                if (error.response && error.response.data) {
+                    addAlert({
+                        type: 'alert-danger',
+                        title: 'Erro!',
+                        body: error.response.data || 'Ocorreu um erro ao salvar barraca.'
+                    });
+                } else {
+                    addAlert({
+                        type: 'alert-danger',
+                        title: 'Erro!',
+                        body: 'Falhou em salvar barraca. Erro desconhecido.'
+                    });
+                }
+            })
+            .finally(() => {
+                setIsLoading(false);
+        })
     };
 
     const editBarraca = (barraca) => {
@@ -118,6 +131,13 @@ function Barracas(){
 
     return (
             <div className="container-fluid p-0">
+                {isLoading && (
+                    <div className="loading-overlay">
+                    <div className="spinner-border text-info" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    </div>
+                )}
                 <div className="row mb-2 mb-xl-3">
                     <div className="col-auto d-none d-sm-block">
                         <h3>Barracas</h3>

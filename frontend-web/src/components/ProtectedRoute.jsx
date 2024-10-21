@@ -13,6 +13,7 @@ import Barracas from '../pages/Barracas';
 import Produtos from '../pages/Produtos';
 import Festa from '../pages/Festa';
 import Cartoes from '../pages/Cartoes';
+import Relatorios from '../pages/Relatorios';
 
 function ProtectedRoute() {
     const [user, setUser] = useState(null);
@@ -102,6 +103,8 @@ function ProtectedRoute() {
                 return <Festa />;
             case 'cartoes':
                 return <Cartoes />;
+            case 'relatorios':
+                return <Relatorios />;
             case 'logout':
                 return <Logout />;  
             default:

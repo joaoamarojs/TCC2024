@@ -10,6 +10,7 @@ import { NumericFormat } from 'react-number-format';
 
 function Festa(){
 
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         nome: '',
         data_inicio: '',
@@ -41,6 +42,12 @@ function Festa(){
     useEffect(() => {
         getFesta();
     }, []);
+
+    useEffect(() => {
+        if(festa){
+            getCaixasFesta();
+        }
+    }, [festa]);
 
     const getFesta = async () => {
         try {
@@ -205,6 +212,7 @@ function Festa(){
     };
 
     const handleSubmitFesta = async (e) => {
+        setIsLoading(true);
         e.preventDefault();
         
         try {
@@ -222,6 +230,8 @@ function Festa(){
             const modal = document.getElementById('iniciarFesta');
             const modalInstance = bootstrap.Modal.getInstance(modal);
             modalInstance.hide();
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -275,18 +285,91 @@ function Festa(){
             allowOutsideClick: () => !Swal.isLoading()
         }).then((result) => {
             if (result.isConfirmed) {
-                Swal.fire("Finalizado!", "O evento foi finalizado com sucesso.", "success").then(() => {
+                Swal.fire("Finalizado!", "A festa foi finalizada com sucesso.", "success").then(() => {
                     getFesta(); 
                 });
             } else if (result.isDenied) {
-                Swal.fire("O evento não foi finalizado.", "", "info");
+                Swal.fire("A Festa não foi finalizada.", "", "info");
             }
         });
+    };
+
+    const fecharCaixa = () => {
+        var options = { 0: "Selecione um Caixa" };
+        
+        caixasFesta.filter(caixa => caixa.finalizado === false).map(caixa => {
+            options[caixa.id] = caixa.user_caixa_username;
+        });
+
+        withReactContent(Swal).fire({
+            title: "Selecione um Caixa que deseja fechar e insira o troco final:",
+            input: 'select',
+            inputOptions: options,
+            showDenyButton: true,
+            confirmButtonText: "Sim",
+            denyButtonText: "Não",
+            showLoaderOnConfirm: true,
+            html: `
+                <input id="trocoFinalInput" class="swal2-input" type="text" placeholder="Troco Final (R$)" />
+            `,
+            didOpen: () => {
+                const trocoFinalInput = document.getElementById('trocoFinalInput');
+                trocoFinalInput.addEventListener('input', (e) => mascaraMoeda(e.target));
+            },
+            preConfirm: async (caixa) => {
+                const trocoFinalFormatted = document.getElementById('trocoFinalInput').value;
+
+                if (caixa == 0) {
+                    Swal.showValidationMessage('Selecione um caixa!');
+                    return false;
+                }
+
+                if (!trocoFinalFormatted || isNaN(formatToNumber(trocoFinalFormatted))) {
+                    Swal.showValidationMessage('Insira um valor de troco final válido!');
+                    return false;
+                }
+
+                const troco_final = formatToNumber(trocoFinalFormatted); // Converte o formato R$ para número
+
+                try {
+                    const response = await api.post('/api/fechar-caixa/', { caixa, troco_final });
+                    return response.data;
+                } catch (error) {
+                    const errorMessage = error.response?.data?.message || "Ocorreu um erro desconhecido.";
+                    Swal.showValidationMessage(`Erro: ${errorMessage}`);
+                    return false;
+                }
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire("Finalizado!", "O Caixa foi finalizado com sucesso.", "success").then(() => {
+                    getFesta(); 
+                });
+            } else if (result.isDenied) {
+                Swal.fire("O Caixa não foi finalizado.", "", "info");
+            }
+        });
+    };
+
+// Função para remover formatação R$ e converter para número
+    const formatToNumber = (formattedValue) => {
+        return parseFloat(formattedValue.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+    };
+
+    // Função para adicionar máscara de moeda (R$)
+    const mascaraMoeda = (input) => {
+        let value = input.value.replace(/\D/g, ""); // Remove qualquer caractere que não seja número
+        value = (value / 100).toFixed(2) + ""; // Divide por 100 e fixa em duas casas decimais
+        value = value.replace(".", ","); // Substitui ponto por vírgula
+        value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Adiciona ponto como separador de milhar
+        input.value = "R$ " + value; // Adiciona o símbolo de reais
     };
 
     const handleAddBarraca = async (e) => {
         e.preventDefault();
         if(selectedBarraca !== null || selectedUserResponsavel !== null){
+            setIsLoading(true);
             try {
                 await api.post('/api/barraca_festa/', { barraca: parseInt(selectedBarraca, 10), user_responsavel: parseInt(selectedUserResponsavel, 10) });
                 addAlertBarraca({ type: 'alert-success', title: 'Sucesso!', body: 'Usuario adicionado a barraca adicionada com sucesso!' });
@@ -295,6 +378,8 @@ function Festa(){
                 getBarracasUsuarios();
             } catch (error) {
                 addAlertBarraca({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar a barraca. Erro: '+error.response.data.message  });
+            } finally {
+                setIsLoading(false);
             }
         }else{
             addAlertBarraca({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
@@ -304,6 +389,7 @@ function Festa(){
     const handleAddCaixa = async (e) => {
         e.preventDefault();
         if(selectedCaixa !== null){
+            setIsLoading(true);
             try {
                 await api.post('/api/caixa_festa/', { user_caixa: parseInt(selectedCaixa, 10) });
                 addAlertCaixa({ type: 'alert-success', title: 'Sucesso!', body: 'Caixa adicionado com sucesso!' });
@@ -311,6 +397,8 @@ function Festa(){
                 getCaixasFesta();
             } catch (error) {
                 addAlertCaixa({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar a caixa. Erro: '+error.response.data.message  });
+            } finally {
+                setIsLoading(false);
             }
         }else{
             addAlertCaixa({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
@@ -320,6 +408,7 @@ function Festa(){
     const handleAddValorProduto = async (e) => {
         e.preventDefault();
         if(selectedProduto !== null){
+            setIsLoading(true);
             try {
                 await api.post(`/api/produto_festa/`, { produto: parseInt(selectedProduto, 10), valor: valor });
                 addAlertProdutos({ type: 'alert-success', title: 'Sucesso!', body: 'Valor adicionado com sucesso!' });
@@ -327,6 +416,8 @@ function Festa(){
                 getProdutos_Festa();
             } catch (error) {
                 addAlertProdutos({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar valor. Erro: '+error.response.data.message  });
+            } finally {
+                setIsLoading(false);
             }
         }else{
             addAlertProdutos({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
@@ -336,6 +427,7 @@ function Festa(){
     const handleAddEstoqueProduto = async (e) => {
         e.preventDefault();
         if(selectedProdutoEstoque !== null){
+            setIsLoading(true);
             try {
                 await api.post(`/api/estoque/`, { produto: parseInt(selectedProdutoEstoque, 10), quant: quant, data: data });
                 addAlertProdutos({ type: 'alert-success', title: 'Sucesso!', body: 'Estoque adicionado com sucesso!' });
@@ -345,6 +437,8 @@ function Festa(){
                 setQuant('');
             } catch (error) {
                 addAlertsEstoques({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao adicionar estoque. Erro: '+error.response.data.message  });
+            } finally {
+                setIsLoading(false);
             }
         }else{
             addAlertsEstoques({ type: 'alert-warning', title: 'Atenção!', body: 'Preencha todos os campos!'  });
@@ -352,6 +446,7 @@ function Festa(){
     };
 
     const handleDeleteBarraca = async (barraca) => {
+        setIsLoading(true);
         try {
             await api.delete(`/api/barraca_festa/delete/${barraca.id}/`);
             addAlertBarraca({ type: 'alert-success', title: 'Sucesso!', body: 'Barraca removida com sucesso!' });
@@ -360,6 +455,8 @@ function Festa(){
             getBarracasUsuarios();
         } catch (error) {
             addAlertBarraca({ type: 'alert-danger', title: 'Erro!', body: 'Ocorreu um erro ao remover a barraca. Erro: '+error.response.data.message });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -397,6 +494,13 @@ function Festa(){
 
     return (
             <div className="container-fluid p-0">
+                {isLoading && (
+                <div className="loading-overlay">
+                  <div className="spinner-border text-info" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              )}
                 <div className="row mb-2 mb-xl-3">
                     <div className="col-auto d-none d-sm-block">
                         <h3>Gerenciar Festa</h3>
@@ -433,12 +537,13 @@ function Festa(){
                             <div className="card-body">
                                 <form>
                                     <div className="mb-4">
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#iniciarFesta"><i className="align-middle me-2 fas fa-fw fa-plus"></i> Iniciar Nova Festa</button>
-                                        <button type="button" onClick={finalizarFesta} className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-lock"></i> Finalizar Festa</button>
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirBarracas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-store"></i> Atribuir Barracas</button>
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirCaixas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-money-check-alt"></i> Atribuir Caixas</button>
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirValorProdutos" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-money-bill-alt"></i> Atribuir Valor Produtos</button>
-                                        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#atribuirEstoques" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-dolly"></i> Atribuir Estoques</button>
+                                        <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#iniciarFesta"><i className="align-middle me-2 fas fa-fw fa-plus"></i> Iniciar Nova Festa</button>
+                                        <button type="button" onClick={finalizarFesta} className="btn btn-primary me-2 mt-2"><i className="align-middle me-2 fas fa-fw fa-lock"></i> Finalizar Festa</button>
+                                        <button type="button" onClick={fecharCaixa} className="btn btn-primary me-2 mt-2"><i className="align-middle me-2 fas fa-fw fa-lock"></i> Fechar Caixa</button>
+                                        <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#atribuirBarracas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-store"></i> Atribuir Barracas</button>
+                                        <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#atribuirCaixas" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-money-check-alt"></i> Atribuir Caixas</button>
+                                        <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#atribuirValorProdutos" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 far fa-fw fa-money-bill-alt"></i> Atribuir Valor Produtos</button>
+                                        <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#atribuirEstoques" onClick={((e) => handleClickModal(e))}><i className="align-middle me-2 fas fa-fw fa-dolly"></i> Atribuir Estoques</button>
                                     </div>                                       
                                 </form>
                             </div>

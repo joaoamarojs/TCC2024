@@ -23,6 +23,7 @@ urlpatterns = [
     path('festa-atual/info/', views.FestaAtualInfo.as_view(), name='festa-atual-info'),
     path('festa-atual/valida-user/', views.ValidaUser.as_view(), name='valida_user'),
     path('fechar-festa/', views.FecharFesta.as_view(), name='fechar-festa'),
+    path('fechar-caixa/', views.FecharCaixa.as_view(), name='fechar-festa'),
     path("festa/delete/<int:pk>/", views.FestaDelete.as_view(), name="delete-festa"),
     path("movimentacao_barraca/", views.Movimentacao_BarracaListCreate.as_view(), name="movimentacao_barraca-list"),
     path("movimentacao_caixa/", views.Movimentacao_CaixaListCreate.as_view(), name="movimentacao_caixa-list"),

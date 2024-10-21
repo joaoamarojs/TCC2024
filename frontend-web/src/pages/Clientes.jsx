@@ -6,6 +6,7 @@ import MaskedInput from 'react-text-mask';
 
 function Clientes(){
 
+    const [isLoading, setIsLoading] = useState(false);
     const [alerts, setAlerts] = useState([]);
     const [clients, setClients] = useState([]);
     const [nome, setNome] = useState("");
@@ -42,8 +43,10 @@ function Clientes(){
     };
 
     const deleteClient = (id) => {
+        setIsLoading(true);
         api.delete(`/api/cliente/delete/${id}/`)
             .then((res) => {
+                setIsLoading(false);
                 if (res.status === 204) {
                     addAlert({
                         type: 'alert-success',
@@ -53,15 +56,19 @@ function Clientes(){
                     getClients();
                 } 
             })
-            .catch((error) => 
+            .catch((error) => {
             addAlert({
                 type: 'alert-danger',
                 title: 'Erro!',
                 body: 'Falhou em deletar cliente. Erro: '+error
-            }));
+            }).finally(() => {
+                setIsLoading(false);
+            })
+        });
     };
 
     const createClient = (e) => {
+        setIsLoading(true);
         e.preventDefault();
         const endpoint = selectedClientId ? `/api/cliente/${selectedClientId}/` : "/api/cliente/";
         const method = selectedClientId ? 'put' : 'post';
@@ -103,6 +110,9 @@ function Clientes(){
                     body: 'Falhou em salvar cliente. Erro desconhecido.'
                 });
             }
+        })
+        .finally(() => {
+            setIsLoading(false);
         });
     };
 
@@ -136,6 +146,13 @@ function Clientes(){
 
     return (
             <div className="container-fluid p-0">
+                {isLoading && (
+                <div className="loading-overlay">
+                  <div className="spinner-border text-info" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              )}
                 <div className="row mb-2 mb-xl-3">
                     <div className="col-auto d-none d-sm-block">
                         <h3>Clientes</h3>

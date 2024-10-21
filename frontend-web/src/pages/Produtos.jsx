@@ -5,6 +5,7 @@ import api from "../api";
 
 function Produtos() {
 
+  const [isLoading, setIsLoading] = useState(false);
   const [alerts, setAlerts] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [nome, setNome] = useState("");
@@ -72,6 +73,7 @@ function Produtos() {
   };
 
   const deleteProduto = (id) => {
+    setIsLoading(true);
     api.delete(`/api/produto/delete/${id}/`)
       .then((res) => {
         if (res.status === 204) addAlert({type: 'alert-success', title: 'Sucesso!', body: 'Produto deletado com sucesso.'});
@@ -81,7 +83,8 @@ function Produtos() {
           type: 'alert-danger',
           title: 'Erro!',
           body: 'Falhou em deletar usuário.'+error
-        }));
+      }))
+      .finally(()=>setIsLoading(false));
   };
 
   const createProduto = (e) => {
@@ -89,6 +92,7 @@ function Produtos() {
     const endpoint = selectedProdutoId ? `/api/produto/${selectedProdutoId}/` : "/api/produto/";
     const method = selectedProdutoId ? 'put' : 'post';
     if(selectedBarraca !== 'none' || selectedTipo_produto !== 'none'){
+      setIsLoading(true);
       api[method](endpoint, { nome,  barraca: parseInt(selectedBarraca, 10), tipo_produto: parseInt(selectedTipo_produto, 10), estocavel })
         .then((res) => {
           if (res.status === 201 || res.status === 200) {
@@ -111,7 +115,8 @@ function Produtos() {
           }
           getProdutos();
         })
-        .catch((error) => addAlert({ type: 'alert-danger',title: 'Erro!',body: 'Falhou em salvar produto. '+error}));
+        .catch((error) => addAlert({ type: 'alert-danger',title: 'Erro!',body: 'Falhou em salvar produto. '+error}))
+        .finally(()=>setIsLoading(false));
     }else{
       addAlert({
         type: 'alert-warning',
@@ -151,6 +156,13 @@ function Produtos() {
 
   return (
           <div className="container-fluid p-0">
+            {isLoading && (
+                <div className="loading-overlay">
+                  <div className="spinner-border text-info" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              )}
             <div className="row mb-2 mb-xl-3">
               <div className="col-auto d-none d-sm-block">
                 <h3>Produtos</h3>

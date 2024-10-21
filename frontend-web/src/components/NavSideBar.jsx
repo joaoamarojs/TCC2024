@@ -93,6 +93,12 @@ function NavSideBar(props) {
                             <span className="align-middle">Cartões</span>
                         </a>
                     </li>
+                    <li className="sidebar-item">
+                        <a className='sidebar-link' href="#" onClick={(e) => handleSelectPage('relatorios', e)}>
+                            <i className="align-middle me-2 fas fa-fw fa-receipt"></i>
+                            <span className="align-middle">Relatorios</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>

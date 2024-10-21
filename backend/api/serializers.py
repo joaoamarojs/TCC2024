@@ -105,7 +105,7 @@ class Caixa_FestaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Caixa_Festa
-        fields = ["id", "festa", "user_caixa", "user_caixa_username"]
+        fields = ["id", "troco_inicial", "festa", "user_caixa", "user_caixa_username", "iniciado", "finalizado"]
         read_only_fields = ["festa"]  
 
     def get_user_caixa_username(self, obj):
