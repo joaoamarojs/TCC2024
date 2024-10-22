@@ -148,7 +148,7 @@ function Tipo_produtos(){
                                     {alerts.map(alert => (
                                         <Alert
                                             key={alert.id}
-                                            className={alert.type} // Adicione classes adicionais se necessário
+                                            className={alert.type} 
                                             message={{ title: alert.title, body: alert.body }}
                                         />
                                     ))}

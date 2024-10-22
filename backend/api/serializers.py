@@ -169,9 +169,10 @@ class Movimentacao_CaixaSerializer(serializers.ModelSerializer):
 
 
 class Movimentacao_ProdutoSerializer(serializers.ModelSerializer):
+    produto_nome = serializers.CharField(source='produto.nome', read_only=True)
     class Meta:
         model = Movimentacao_Produto
-        fields = ['produto', 'qtd']
+        fields = ['produto', 'produto_nome', 'qtd']
         
 class Movimentacao_BarracaSerializer(serializers.ModelSerializer):
     produtos = Movimentacao_ProdutoSerializer(many=True)

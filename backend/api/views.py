@@ -1,5 +1,6 @@
 import os
 import json
+from decimal import Decimal
 from django.db import IntegrityError
 from django.forms import ValidationError
 from django.conf import settings
@@ -68,7 +69,7 @@ class Barraca_FestaListCreate(generics.ListCreateAPIView):
             festa = Festa.objects.filter(id=festa).first()
             if festa:
                 queryset = Barraca_Festa.objects.filter(festa=festa).select_related('barraca').values(
-                    'barraca__id', 'barraca__nome'
+                    'id','barraca__id', 'barraca__nome'
                 ).distinct()
 
                 barracas_unicas = list(queryset)
@@ -161,7 +162,7 @@ class Caixa_FestaListCreate(generics.ListCreateAPIView):
             festa = Festa.objects.filter(id=festa_id).first()
             if festa:
                 # Filtra os caixas relacionados à festa
-                queryset = Caixa_Festa.objects.filter(festa=festa).select_related('user_caixa').values(
+                queryset = Caixa_Festa.objects.filter(festa=festa, finalizado=True).select_related('user_caixa').values(
                     'id', 'user_caixa__username', 'iniciado', 'finalizado', 'troco_inicial'
                 )
                 caixas_festa = list(queryset)
@@ -201,6 +202,70 @@ class Caixa_FestaDelete(generics.DestroyAPIView):
 
         instance.delete()
         return Response({"message": "Caixa excluído com sucesso."}, status=status.HTTP_204_NO_CONTENT)
+    
+
+class Caixa_Fechamento(APIView):
+    def get(self, request, caixa_id):
+        try:
+            caixa = Caixa_Festa.objects.get(id=caixa_id, iniciado=True, finalizado=True)
+
+            movimentacoes = Movimentacao_Caixa.objects.filter(user_caixa=caixa.user_caixa, festa=caixa.festa)
+
+            total_por_pagamento = movimentacoes.values('forma_pagamento').annotate(total=models.Sum('valor'))
+
+            movimentacoes_dinheiro = movimentacoes.filter(forma_pagamento="Dinheiro")
+
+            total_dinheiro_vendas = movimentacoes_dinheiro.aggregate(total=models.Sum('valor'))['total'] or Decimal('0.00')
+
+            diferenca_troco = caixa.troco_final - (total_dinheiro_vendas + caixa.troco_inicial)
+
+            total_geral_vendas = movimentacoes.aggregate(total=models.Sum('valor'))['total'] or Decimal('0.00')
+
+            data = {
+                'nome_caixa': f"{caixa.user_caixa.first_name} {caixa.user_caixa.last_name}",
+                'festa': caixa.festa.nome,
+                'troco_inicial': caixa.troco_inicial,
+                'troco_final': caixa.troco_final,
+                'total_por_pagamento': total_por_pagamento,
+                'diferenca_troco': diferenca_troco,
+                'total_geral_vendas': total_geral_vendas,
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Caixa_Festa.DoesNotExist:
+            return Response({"message": "Caixa não encontrado ou não está finalizado."}, status=status.HTTP_404_NOT_FOUND)    
+
+
+class Barraca_Fechamento(APIView):
+    def get(self, request, barraca_id):
+        try:
+            barraca_festa = Barraca_Festa.objects.get(id=barraca_id)
+
+            produtos = Produto_Festa.objects.filter(festa=barraca_festa.festa, produto__barraca=barraca_festa.barraca)
+
+            movimentacoes = Movimentacao_Barraca.objects.filter(barraca=barraca_festa.barraca, festa=barraca_festa.festa)
+
+            movimentacoes_produtos = Movimentacao_Produto.objects.filter(
+                movimentacao__in=movimentacoes, produto__in=produtos.values('produto')
+            )
+
+            qtd_por_produto = movimentacoes_produtos.values('produto__nome').annotate(total=models.Sum('qtd'))
+
+            total_vendas = movimentacoes.aggregate(total=models.Sum('valor'))['total'] or Decimal('0.00')
+
+            data = {
+                'nome_barraca': barraca_festa.barraca.nome,
+                'festa': barraca_festa.festa.nome,
+                'qtd_por_produto': qtd_por_produto,
+                'total_vendas': total_vendas,
+                'movimentacoes': movimentacoes.values('desc', 'valor'),
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Barraca_Festa.DoesNotExist:
+            return Response({"message": "Barraca não encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class CartaoListCreate(generics.ListCreateAPIView):
@@ -512,6 +577,78 @@ class FestaDelete(generics.DestroyAPIView):
     def get_queryset(self):
         
         return Festa.objects.filter() 
+    
+
+class Festa_Fechamento(APIView):
+    def get(self, request, festa_id):
+        try:
+            festa = Festa.objects.get(id=festa_id, fechada=True)
+
+            caixas = Caixa_Festa.objects.filter(festa=festa, iniciado=True, finalizado=True)
+
+            barracas = Barraca_Festa.objects.filter(festa=festa);
+
+            data = {
+                'festa':festa.nome,
+                'caixas': [],
+                'total-caixas': Decimal('0.00'),
+                'barracas':[],
+                'total-barracas':Decimal('0.00')
+            }
+
+            for caixa in caixas:
+
+                movimentacoes = Movimentacao_Caixa.objects.filter(user_caixa=caixa.user_caixa, festa=caixa.festa)
+
+                total_por_pagamento = movimentacoes.values('forma_pagamento').annotate(total=models.Sum('valor'))
+
+                movimentacoes_dinheiro = movimentacoes.filter(forma_pagamento="Dinheiro")
+
+                total_dinheiro_vendas = movimentacoes_dinheiro.aggregate(total=models.Sum('valor'))['total'] or Decimal('0.00')
+
+                diferenca_troco = caixa.troco_final - (total_dinheiro_vendas + caixa.troco_inicial)
+
+                total_geral_vendas = movimentacoes.aggregate(total=models.Sum('valor'))['total'] or Decimal('0.00')
+
+                data['total-caixas'] = data['total-caixas'] + total_geral_vendas
+
+                data['caixas'].append({
+                    'nome_caixa': f"{caixa.user_caixa.first_name} {caixa.user_caixa.last_name}",
+                    'troco_inicial': caixa.troco_inicial,
+                    'troco_final': caixa.troco_final,
+                    'total_por_pagamento': total_por_pagamento,
+                    'diferenca_troco': diferenca_troco,
+                    'total_geral_vendas': total_geral_vendas,
+                })
+
+            for barraca_festa in barracas:
+
+                produtos = Produto_Festa.objects.filter(festa=barraca_festa.festa, produto__barraca=barraca_festa.barraca)
+
+                movimentacoes = Movimentacao_Barraca.objects.filter(barraca=barraca_festa.barraca, festa=barraca_festa.festa)
+
+                movimentacoes_produtos = Movimentacao_Produto.objects.filter(
+                    movimentacao__in=movimentacoes, produto__in=produtos.values('produto')
+                )
+
+                qtd_por_produto = movimentacoes_produtos.values('produto__nome').annotate(total=models.Sum('qtd'))
+
+                total_vendas = movimentacoes.aggregate(total=models.Sum('valor'))['total'] or Decimal('0.00')
+
+                data['total-barracas'] = data['total-barracas'] + total_vendas
+
+                data['barracas'].append({
+                    'nome_barraca': barraca_festa.barraca.nome,
+                    'festa': barraca_festa.festa.nome,
+                    'qtd_por_produto': qtd_por_produto,
+                    'total_vendas': total_vendas,
+                    'movimentacoes': movimentacoes.values('desc', 'valor'),
+                })
+
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Festa.DoesNotExist:
+            return Response({"message": "Festa ainda está em aberto."}, status=status.HTTP_404_NOT_FOUND)    
 
 
 class Movimentacao_BarracaListCreate(generics.ListCreateAPIView):

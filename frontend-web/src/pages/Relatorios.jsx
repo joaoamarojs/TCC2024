@@ -1,27 +1,34 @@
 import { useState, useEffect } from "react";
 import ModalForm from '../components/ModalForm';
 import Alert from "../components/Alert";
-import Table from '../components/Table';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import PdfReport  from '../components/PdfReport';
 import api from "../api";
 
 function Relatorios() {
 
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCaixa, setSelectedCaixa] = useState(null);
+  const [selectedBarraca, setSelectedBarraca] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [festas, setFestas] = useState([]);
   const [festa, setFesta] = useState('');
   const [caixas, setCaixas] = useState([]);
   const [barracas, setBarracas] = useState([]);
-  const [error, setError] = useState('');
+  const [pdfData, setPdfData] = useState(null);
+  const [pdfNome, setPdfNome] = useState('');
 
   useEffect(() => {
     const getFestas = async () => {
       try {
           const response = await api.get("/api/festa/");
           setFestas(response.data);
-          setError(null);
       } catch (err) {
-          setError(err.response.data.message || "Ocorreu um erro ao buscar festas.");
+          addAlert({
+                      type: 'alert-danger',
+                      title: 'Erro!',
+                      body: err.response.data.message || "Ocorreu um erro ao buscar festas."
+                  });
           setFestas(null);
       }
     };
@@ -29,7 +36,6 @@ function Relatorios() {
   },[]);  
 
   useEffect(() => {
-    console.log(festa)
     const getCaixas = async () => {
       try {
           const response = await api.get(`/api/caixa_festa/?relatorio=true&festa=${festa}`);
@@ -61,6 +67,131 @@ function Relatorios() {
           }
       ]);
   };
+
+  const getBarraca_Fechamento = async () => {
+    try {
+      const response = await api.get(`/api/barraca_fechamento/${selectedBarraca}/`);
+      generateBarraca_FechamentoReport(response.data);
+      setPdfNome(`Fechamento_Barraca - ${response.data.nome_barraca}`)
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const generateBarraca_FechamentoReport = (data) => {
+    const headerContent = `Fechamento de Barraca - ${data.nome_barraca}`;
+    const bodyContent = [
+      `Festa: ${data.festa}`,
+      `Quantidade por Produto:`,
+      ...data.qtd_por_produto.map(item => ` - ${item.produto__nome}:${item.total}`),
+      `Total de Vendas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.total_vendas)}`,
+    ];
+    const footerContent = 'Relatório gerado em: ' + new Date().toLocaleDateString();
+
+    setPdfData({ headerContent, bodyContent, footerContent });
+    const modal = document.getElementById('fecharBarraca');
+    const modalInstance = bootstrap.Modal.getInstance(modal);
+    modalInstance.hide();
+    addAlert({
+      type: 'alert-success',
+      title: 'Sucesso!',
+      body: "Relatorio gerado com sucesso."
+    });
+  };
+
+  const getCaixa_Fechamento = async () => {
+    try {
+      const response = await api.get(`/api/caixa_fechamento/${selectedCaixa}/`);
+      generateCaixa_FechamentoReport(response.data);
+      setPdfNome(`Fechamento_Caixa - ${response.data.nome_caixa}`)
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const generateCaixa_FechamentoReport = (data) => {
+    const headerContent = `Fechamento de Caixa - ${data.nome_caixa}`;
+    const bodyContent = [
+      `Festa: ${data.festa}`,
+      `Troco Inicial: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.troco_inicial)}`,
+      `Total por Pagamento:`,
+      ...data.total_por_pagamento.map(item => ` - ${item.forma_pagamento}: R$ ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total)}`),
+      `Diferença de Troco: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.diferenca_troco)}`,
+      `Total Geral de Vendas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.total_geral_vendas)}`,
+      `Troco Final: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.troco_final)}`,
+    ];
+    const footerContent = 'Relatório gerado em: ' + new Date().toLocaleDateString();
+
+    setPdfData({ headerContent, bodyContent, footerContent });
+    const modal = document.getElementById('fecharCaixa');
+    const modalInstance = bootstrap.Modal.getInstance(modal);
+    modalInstance.hide();
+    addAlert({
+      type: 'alert-success',
+      title: 'Sucesso!',
+      body: "Relatorio gerado com sucesso."
+    });
+  };
+
+  const getFesta_Fechamento = async () => {
+    try {
+      const response = await api.get(`/api/festa_fechamento/${festa}/`);
+      generateFechamentoFestaReport(response.data)
+      setPdfNome(`Fechamento_Festa - ${response.data.festa}`)
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const generateFechamentoFestaReport = (data) => {
+    const headerContent = `Fechamento da Festa - ${data.festa}`;
+    
+    const caixasContent = data.caixas.map(caixa => {
+      return [
+        `Caixa: ${caixa.nome_caixa}`,
+        `Troco Inicial: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.troco_inicial)}`,
+        `Troco Final: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.troco_final)}`,
+        `Diferença de Troco: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.diferenca_troco)}`,
+        `Total por Pagamento:`,
+        ...caixa.total_por_pagamento.map(item => ` - ${item.forma_pagamento}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total)}`),
+        `Total Geral de Vendas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.total_geral_vendas)}`,
+        `-----------------------------------`
+      ].join('\n');
+    }).join('\n');
+
+    const barracasContent = data.barracas.map(barraca => {
+      return [
+        `Barraca: ${barraca.nome_barraca}`,
+        `Produtos Vendidos:`,
+        ...barraca.qtd_por_produto.map(item => ` - ${item.produto__nome}: ${item.total}`),
+        `Total de Vendas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(barraca.total_vendas)}`,
+        `-----------------------------------`
+      ].join('\n');
+    }).join('\n');
+
+    const bodyContent = [
+      `Festa: ${data.festa}`,
+      `\nDetalhes das Caixas:\n`,
+      caixasContent,
+      `\nDetalhes das Barracas:\n`,
+      barracasContent,
+      `\nResumo Geral:`,
+      `Total Caixas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data["total-caixas"])}`,
+      `Total Barracas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data["total-barracas"])}`,
+      `Total Geral: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data["total-caixas"] + data["total-barracas"])}`
+    ];
+
+    const footerContent = 'Relatório gerado em: ' + new Date().toLocaleDateString();
+
+    setPdfData({ headerContent, bodyContent, footerContent });
+
+    addAlert({
+      type: 'alert-success',
+      title: 'Sucesso!',
+      body: "Relatório de fechamento gerado com sucesso."
+    });
+  };
+
 
   return (
           <div className="container-fluid p-0">
@@ -106,11 +237,23 @@ function Relatorios() {
                         <div className="mb-4">
                           <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#fecharCaixa"><i className="align-middle me-2 fas fa-fw fa-money-check-alt"></i> Fechamento de Caixa</button>
                           <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#fecharBarraca"><i className="align-middle me-2 fas fa-fw fa-store"></i> Fechamento de Barraca</button>
-                          <button type="button" className="btn btn-primary me-2 mt-2"><i className="align-middle me-2 fas fa-fw fa-briefcase"></i> Fechamento de Festa</button>
+                          <button type="button" className="btn btn-primary me-2 mt-2" onClick={getFesta_Fechamento}><i className="align-middle me-2 fas fa-fw fa-briefcase"></i> Fechamento de Festa</button>
                         </div>                                       
                     </form>
                   </div>
                 </div>
+                {pdfData && (
+                  <div className="card">
+                    <div className="card-body">
+                      <PDFDownloadLink
+                        document={<PdfReport headerContent={pdfData.headerContent} bodyContent={pdfData.bodyContent} footerContent={pdfData.footerContent} />}
+                        fileName={`${pdfNome}.pdf`}
+                      >
+                        {({ loading }) => (loading ? 'Gerando PDF...' : `Baixar Relatório "${pdfNome}"`)}
+                      </PDFDownloadLink>
+                    </div>  
+                  </div>  
+                )}
               </div>
             </div>
             <div className="modals">
@@ -125,7 +268,7 @@ function Relatorios() {
                               <select className="form-select" required onChange={(e) => setSelectedCaixa(e.target.value)}>
                                   <option value='none'>Selecione um Usuario</option>
                                   {caixas.map(caixa => (
-                                      <option key={caixa.user_caixa} value={caixa.user_caixa}>{caixa.user_caixa_username}</option>
+                                      <option key={caixa.id} value={caixa.id}>{caixa.user_caixa__username}</option>
                                   ))}
                               </select>
                           </div>
@@ -133,7 +276,7 @@ function Relatorios() {
                   }
                   footer={                                    
                           <div className="mb-4">
-                              <button type="button" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-receipt"></i> Gerar Relatorio</button>
+                              <button type="button" className="btn btn-primary me-2" onClick={getCaixa_Fechamento}><i className="align-middle me-2 fas fa-fw fa-receipt"></i> Gerar Relatorio</button>
                               <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                           </div> 
                   }
@@ -149,7 +292,7 @@ function Relatorios() {
                             <select className="form-select" required onChange={(e) => setSelectedBarraca(e.target.value)}>
                                 <option value='none'>Selecione uma Barraca</option>
                                 {barracas.map(barraca => (
-                                    <option key={barraca.barraca__id} value={barraca.barraca__id}>{barraca.barraca__nome}</option>
+                                    <option key={barraca.id} value={barraca.id}>{barraca.barraca__nome}</option>
                                 ))}
                             </select>
                         </div>
@@ -157,7 +300,7 @@ function Relatorios() {
                   }
                   footer={                                    
                           <div className="mb-4">
-                              <button type="button" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-receipt"></i> Gerar Relatorio</button>
+                              <button type="button" className="btn btn-primary me-2" onClick={getBarraca_Fechamento}><i className="align-middle me-2 fas fa-fw fa-receipt"></i> Gerar Relatorio</button>
                               <button type="reset" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-brush"></i> Limpar</button>
                           </div> 
                   }
