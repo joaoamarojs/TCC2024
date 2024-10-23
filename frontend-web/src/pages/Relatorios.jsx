@@ -74,7 +74,11 @@ function Relatorios() {
       generateBarraca_FechamentoReport(response.data);
       setPdfNome(`Fechamento_Barraca - ${response.data.nome_barraca}`)
     } catch (err) {
-      console.error(err);
+      addAlert({
+            type: 'alert-danger',
+            title: 'Erro!',
+            body: err.response.data.message || "Ocorreu um erro ao gerar relatorio."
+      });
     }
   };
 
@@ -105,7 +109,11 @@ function Relatorios() {
       generateCaixa_FechamentoReport(response.data);
       setPdfNome(`Fechamento_Caixa - ${response.data.nome_caixa}`)
     } catch (err) {
-      console.error(err);
+      addAlert({
+            type: 'alert-danger',
+            title: 'Erro!',
+            body: err.response.data.message || "Ocorreu um erro ao gerar relatorio."
+      });
     }
   };
 
@@ -133,52 +141,88 @@ function Relatorios() {
     });
   };
 
-  const getFesta_Fechamento = async () => {
+  const getFesta_Fechamento = async (tipo) => {
     try {
       const response = await api.get(`/api/festa_fechamento/${festa}/`);
-      generateFechamentoFestaReport(response.data)
-      setPdfNome(`Fechamento_Festa - ${response.data.festa}`)
+      switch (tipo) {
+        case 'barracas':
+          generateFechamentoBarracasReport(response.data)
+          setPdfNome(`Fechamento_Barracas - ${response.data.festa}`)
+          break;
+        case 'caixas':
+          generateFechamentoCaixasReport(response.data)
+          setPdfNome(`Fechamento_Caixas - ${response.data.festa}`)
+          break;
+        default: 
+          addAlert({
+                type: 'alert-danger',
+                title: 'Erro!',
+                body: "Relatorio invalido."
+          });
+      }    
     } catch (err) {
-      console.error(err);
+      addAlert({
+            type: 'alert-danger',
+            title: 'Erro!',
+            body: err.response.data.message || "Ocorreu um erro ao gerar relatorio."
+      });
     }
   };
 
-  const generateFechamentoFestaReport = (data) => {
-    const headerContent = `Fechamento da Festa - ${data.festa}`;
-    
-    const caixasContent = data.caixas.map(caixa => {
-      return [
-        `Caixa: ${caixa.nome_caixa}`,
-        `Troco Inicial: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.troco_inicial)}`,
-        `Troco Final: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.troco_final)}`,
-        `Diferença de Troco: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.diferenca_troco)}`,
-        `Total por Pagamento:`,
-        ...caixa.total_por_pagamento.map(item => ` - ${item.forma_pagamento}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total)}`),
-        `Total Geral de Vendas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.total_geral_vendas)}`,
-        `-----------------------------------`
-      ].join('\n');
-    }).join('\n');
+  const generateFechamentoBarracasReport = (data) => {
+    const headerContent = `Fechamento das Barracas - ${data.festa}`;
 
     const barracasContent = data.barracas.map(barraca => {
       return [
-        `Barraca: ${barraca.nome_barraca}`,
-        `Produtos Vendidos:`,
+        `\nBarraca: ${barraca.nome_barraca}`,
+        `\nProdutos Vendidos:\n`,
         ...barraca.qtd_por_produto.map(item => ` - ${item.produto__nome}: ${item.total}`),
-        `Total de Vendas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(barraca.total_vendas)}`,
-        `-----------------------------------`
+        `\nTotal de Vendas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(barraca.total_vendas)}`,
+        `\n-----------------------------------`
       ].join('\n');
     }).join('\n');
 
     const bodyContent = [
       `Festa: ${data.festa}`,
-      `\nDetalhes das Caixas:\n`,
-      caixasContent,
       `\nDetalhes das Barracas:\n`,
       barracasContent,
       `\nResumo Geral:`,
+      `Total Barracas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data["total-barracas"])}`
+    ];
+
+    const footerContent = 'Relatório gerado em: ' + new Date().toLocaleDateString();
+
+    setPdfData({ headerContent, bodyContent, footerContent });
+
+    addAlert({
+      type: 'alert-success',
+      title: 'Sucesso!',
+      body: "Relatório de fechamento gerado com sucesso."
+    });
+  };
+
+  const generateFechamentoCaixasReport = (data) => {
+    const headerContent = `Fechamento dos caixas - ${data.festa}`;
+    
+    const caixasContent = data.caixas.map(caixa => {
+      return [
+        `\nCaixa: ${caixa.nome_caixa}`,
+        `\nTroco Inicial: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.troco_inicial)}`,
+        `\nTroco Final: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.troco_final)}`,
+        `\nDiferença de Troco: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.diferenca_troco)}`,
+        `\nTotal por Pagamento:\n`,
+        ...caixa.total_por_pagamento.map(item => ` - ${item.forma_pagamento}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total)}`),
+        `\nTotal Geral de Vendas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caixa.total_geral_vendas)}`,
+        `\n-----------------------------------`
+      ].join('\n');
+    }).join('\n');
+
+    const bodyContent = [
+      `Festa: ${data.festa}`,
+      `\nDetalhes dos Caixas:\n`,
+      caixasContent,
+      `\nResumo Geral:`,
       `Total Caixas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data["total-caixas"])}`,
-      `Total Barracas: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data["total-barracas"])}`,
-      `Total Geral: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data["total-caixas"] + data["total-barracas"])}`
     ];
 
     const footerContent = 'Relatório gerado em: ' + new Date().toLocaleDateString();
@@ -237,7 +281,14 @@ function Relatorios() {
                         <div className="mb-4">
                           <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#fecharCaixa"><i className="align-middle me-2 fas fa-fw fa-money-check-alt"></i> Fechamento de Caixa</button>
                           <button type="button" className="btn btn-primary me-2 mt-2" data-bs-toggle="modal" data-bs-target="#fecharBarraca"><i className="align-middle me-2 fas fa-fw fa-store"></i> Fechamento de Barraca</button>
-                          <button type="button" className="btn btn-primary me-2 mt-2" onClick={getFesta_Fechamento}><i className="align-middle me-2 fas fa-fw fa-briefcase"></i> Fechamento de Festa</button>
+                          <div className="btn-group me-2 mt-2">
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i className="align-middle me-2 fas fa-fw fa-briefcase"></i> Fechamento de Festa</button>
+                            <div className="dropdown-menu">
+                              <a className="dropdown-item" href="#" onClick={() => getFesta_Fechamento('caixas')}>Caixas</a>
+                              <div className="dropdown-divider"></div>
+                              <a className="dropdown-item" href="#" onClick={() => getFesta_Fechamento('barracas')}>Barracas</a>
+                            </div>
+                          </div>
                         </div>                                       
                     </form>
                   </div>
