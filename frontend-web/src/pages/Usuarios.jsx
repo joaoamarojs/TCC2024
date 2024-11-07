@@ -35,9 +35,8 @@ function Usuarios() {
 
   const getUsers = () => {
     api.get("/api/user/")
-      .then((res) => res.data)
-      .then((data) => {
-        setUsers(data);
+      .then((res) => {
+        setUsers(res.data);
       })
       .catch((error) => addAlert({
           type: 'alert-danger',
@@ -48,9 +47,8 @@ function Usuarios() {
 
   const getGroups = () => {
     api.get("/api/groups/")
-      .then((res) => res.data)
-      .then((data) => {
-        setGroups(data);
+      .then((res) => {
+        setGroups(res.data);
       })
       .catch((error) => addAlert({
           type: 'alert-danger',
@@ -203,7 +201,7 @@ function Usuarios() {
                         </div>
                         <div className="col-md-6">                          
                           <div className="mb-4">
-                            <label className="form-label">Password</label>
+                            <label className="form-label">Senha</label>
                             <input type="password" id="password" name="password" required onChange={(e) => setPassword(e.target.value)} value={password} className="form-control" placeholder="Senha"/>
                           </div>
                         </div>

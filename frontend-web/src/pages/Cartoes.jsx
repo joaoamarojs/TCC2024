@@ -71,14 +71,13 @@ function Cartoes() {
   const getConfigCartao = () => {
     setIsLoadingCartao(true)
     api.get("/api/config_cartao/")
-      .then((res) => res.data)
-      .then((data) => {
-        setConfigCartao(data);
-        setTitulo(data.titulo);
-        setFonte(data.fonte);
-        setCor(data.cor);
-        setTamanho(data.tamanho);
-        setCorCartao(data.cor_cartao);
+      .then((res) => {
+        setConfigCartao(res.data);
+        setTitulo(res.data.titulo);
+        setFonte(res.data.fonte);
+        setCor(res.data.cor);
+        setTamanho(res.data.tamanho);
+        setCorCartao(res.data.cor_cartao);
         setIsLoadingCartao(false)
       })
       .catch((error) => addAlertCartoes({
@@ -90,9 +89,8 @@ function Cartoes() {
 
   const getCartoes = () => {
     api.get("/api/cartao/")
-      .then((res) => res.data)
-      .then((data) => {
-        setCartoes(data);
+      .then((res) => {
+        setCartoes(res.data);
       })
       .catch((error) => addAlertCartoes({
           type: 'alert-danger',
@@ -103,9 +101,8 @@ function Cartoes() {
 
   const getClientes = () => {
     api.get("/api/cliente/")
-      .then((res) => res.data)
-      .then((data) => {
-        setClientes(data);
+      .then((res) => {
+        setClientes(res.data);
       })
       .catch((error) => addAlertCartoes({
           type: 'alert-danger',

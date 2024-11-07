@@ -35,9 +35,8 @@ function Produtos() {
 
   const getProdutos = () => {
     api.get("/api/produto/")
-      .then((res) => res.data)
-      .then((data) => {
-        setProdutos(data);
+      .then((res) => {
+        setProdutos(res.data);
       })
       .catch((error) => addAlert({
           type: 'alert-danger',
@@ -48,9 +47,8 @@ function Produtos() {
 
   const getTipo_produtos = () => {
     api.get("/api/tipo_produto/")
-      .then((res) => res.data)
-      .then((data) => {
-        setTipo_produtos(data);
+      .then((res) => {
+        setTipo_produtos(res.data);
       })
       .catch((error) => addAlert({
           type: 'alert-danger',
@@ -61,9 +59,8 @@ function Produtos() {
 
   const getBarracas = () => {
     api.get("/api/barraca/")
-      .then((res) => res.data)
-      .then((data) => {
-        setBarracas(data);
+      .then((res) => {
+        setBarracas(res.data);
       })
       .catch((error) => addAlert({
           type: 'alert-danger',
@@ -178,7 +175,7 @@ function Produtos() {
                         {alerts.map(alert => (
                             <Alert
                                 key={alert.id}
-                                className={alert.type} // Adicione classes adicionais se necessário
+                                className={alert.type}
                                 message={{ title: alert.title, body: alert.body }}
                             />
                         ))}
@@ -194,7 +191,7 @@ function Produtos() {
                         <div className="col-md-6">
                           <div className="mb-4">
                             <label className="form-label">Barraca</label>
-                            <select className="form-select" value={selectedBarraca} onChange={(e) => setSelectedBarraca(e.target.value)}>
+                            <select className="form-select choices-single" value={selectedBarraca} onChange={(e) => setSelectedBarraca(e.target.value)}>
                                 <option value='none'>Barraca</option>
                                 {barracas.map((barraca) => (
                                     <option key={barraca.id} value={barraca.id}>{barraca.nome}</option>

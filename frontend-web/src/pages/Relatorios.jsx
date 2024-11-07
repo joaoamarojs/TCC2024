@@ -20,37 +20,33 @@ function Relatorios() {
 
   useEffect(() => {
     const getFestas = async () => {
-      try {
-          const response = await api.get("/api/festa/");
-          setFestas(response.data);
-      } catch (err) {
-          addAlert({
+      api.get("/api/festa/")
+      .then((res) => {
+        setFestas(res.data);
+      })
+      .catch((error) => addAlert({
                       type: 'alert-danger',
                       title: 'Erro!',
-                      body: err.response.data.message || "Ocorreu um erro ao buscar festas."
-                  });
-          setFestas(null);
-      }
+                      body: error.response.data.message || "Ocorreu um erro ao buscar festas."
+                  }));
     };
     getFestas();
   },[]);  
 
   useEffect(() => {
-    const getCaixas = async () => {
-      try {
-          const response = await api.get(`/api/caixa_festa/?relatorio=true&festa=${festa}`);
-          setCaixas(response.data);
-      } catch (err) {
-          console.error(err);
-      }
+    const getCaixas = () => {
+      api.get(`/api/caixa_festa/?relatorio=true&festa=${festa}`)
+      .then((res) => {
+          setCaixas(res.data);
+      })
+      .catch((error) => console.error(error));
     };
-    const getBarracas = async () => {
-      try {
-          const response = await api.get(`/api/barraca_festa/?relatorio=true&festa=${festa}`);
-          setBarracas(response.data);
-      } catch (err) {
-          console.error(err);
-      }
+    const getBarracas = () => {
+      api.get(`/api/barraca_festa/?relatorio=true&festa=${festa}`)
+      .then((res) => {
+          setBarracas(res.data);
+      })
+      .catch((error) => console.error(error));
     };
     if(festa){
       getCaixas();
@@ -80,6 +76,12 @@ function Relatorios() {
             body: err.response.data.message || "Ocorreu um erro ao gerar relatorio."
       });
     }
+          api.get(`/api/barraca_festa/?relatorio=true&festa=${festa}`)
+      .then((res) => {
+          setBarracas(res.data);
+      })
+      .catch((error) => console.error(error));
+    
   };
 
   const generateBarraca_FechamentoReport = (data) => {
@@ -295,12 +297,15 @@ function Relatorios() {
                 </div>
                 {pdfData && (
                   <div className="card">
+                    <div className="card-header">
+                      <h5 class="card-title">Relatorio</h5>
+                    </div>
                     <div className="card-body">
                       <PDFDownloadLink
                         document={<PdfReport headerContent={pdfData.headerContent} bodyContent={pdfData.bodyContent} footerContent={pdfData.footerContent} />}
                         fileName={`${pdfNome}.pdf`}
                       >
-                        {({ loading }) => (loading ? 'Gerando PDF...' : `Baixar Relatório "${pdfNome}"`)}
+                        {({ loading }) => (loading ? 'Gerando PDF...' : <><i className="align-middle me-2 fas fa-fw fa-file-pdf"></i>Baixar Relatório {pdfNome}</>)}
                       </PDFDownloadLink>
                     </div>  
                   </div>  

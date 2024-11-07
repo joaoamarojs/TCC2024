@@ -1076,20 +1076,11 @@ class CustomTokenObtainPairView(APIView):
         elif client_type == 'mobile' and group.id in [1]:
             return Response({'detail': 'Usuarios Administrativos não podem acessar o mobile.'}, status=status.HTTP_403_FORBIDDEN)
         elif client_type == 'mobile' and group.id in [2, 3]:
-            festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
-            caixa_festa = Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user).first()
-            if group.id in [3] and caixa_festa.finalizado == True:
-                return Response({'detail': 'Caixa Fechado. Obrigado pela colaboração!'}, status=status.HTTP_403_FORBIDDEN)
-            else:
-                if group.id in [3] and caixa_festa.iniciado == False:
-                    caixa_festa.iniciado = True
-                    caixa_festa.save()
-
-                token = RefreshToken.for_user(user)
-                return Response({
-                    'access': str(token.access_token),
-                    'refresh': str(token)
-                })
+            token = RefreshToken.for_user(user)
+            return Response({
+                'access': str(token.access_token),
+                'refresh': str(token)
+            })
         elif client_type == 'web' and group.id == 1:
             token = RefreshToken.for_user(user)
             return Response({
@@ -1117,9 +1108,17 @@ class ValidaUser(generics.GenericAPIView):
         festa_atual = Festa.objects.filter(fechada=False).order_by('-data_inicio').first()
         if not festa_atual:
             return Response({"message": "Nenhuma festa em aberto."}, status=status.HTTP_404_NOT_FOUND)
+        group = Group.objects.get(user=user)
 
         barraca_festa = Barraca_Festa.objects.filter(festa=festa_atual, user_responsavel=user).first()
         caixa_festa = Caixa_Festa.objects.filter(festa=festa_atual, user_caixa=user).first()
+
+        if group.id in [3] and caixa_festa.finalizado == True:
+            return Response({'message': 'Caixa Fechado. Obrigado pela colaboração!'}, status=status.HTTP_403_FORBIDDEN)
+        else:
+            if group.id in [3] and caixa_festa.iniciado == False:
+                caixa_festa.iniciado = True
+                caixa_festa.save()
 
         if barraca_festa:
             return Response({

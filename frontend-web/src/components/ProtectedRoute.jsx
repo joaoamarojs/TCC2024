@@ -19,69 +19,50 @@ function ProtectedRoute() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isAuthorized, setIsAuthorized] = useState(null);
+    const [isAuthorized, setIsAuthorized] = useState(false);
     const [selectedPage, setSelectedPage] = useState(null);
 
     function Logout() {
-        localStorage.clear()
+        localStorage.clear();
         return <Navigate to="/login" />;
     }
 
     useEffect(() => {
-        const auth = async () => {
-            try {
-                const token = localStorage.getItem(ACCESS_TOKEN);
-                if (!token) {
-                    setIsAuthorized(false);
-                    return;
-                }
+        const checkAuthorization = () => {
+            const token = localStorage.getItem(ACCESS_TOKEN);
+            if (!token) {
+                setIsAuthorized(false);
+                return;
+            }
+            const decoded = jwtDecode(token);
+            const tokenExpiration = decoded.exp;
+            const now = Date.now() / 1000;
 
-                const decoded = jwtDecode(token);
-                const tokenExpiration = decoded.exp;
-                const now = Date.now() / 1000;
-
-                if (tokenExpiration < now) {
-                    await refreshToken();
-                } else {
-                    setIsAuthorized(true);
-                }
-            } catch (error) {
+            if (tokenExpiration > now) {
+                setIsAuthorized(true);
+            } else {
                 setIsAuthorized(false);
             }
         };
 
-        if(selectedPage != 'login' || selectedPage != 'logout') auth().then(() => fetchUserData().finally(() => setLoading(false)));
-    }, [selectedPage]);
+        checkAuthorization();
+        if (isAuthorized) {
+            fetchUserData().finally(() => setLoading(false));
+        } else {
+            setLoading(false);
+        }
+    }, [selectedPage, isAuthorized]);
 
     const fetchUserData = async () => {
         try {
             const response = await api.get('/api/user/profile/');
             if (response.status === 200) {
-                const data = response.data
-                setUser(data);
+                setUser(response.data);
             } else {
-                setError('Falhou em capturar os dados do usuario');
-                refreshToken();
+                setError('Falhou em capturar os dados do usuário');
             }
         } catch (error) {
             setError(error.message);
-        }
-    };
-
-    const refreshToken = async () => {
-        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-        try {
-            const res = await api.post('/api/token/refresh/', {
-                refresh: refreshToken,
-            });
-            if (res.status === 200) {
-                localStorage.setItem(ACCESS_TOKEN, res.data.access);
-                setIsAuthorized(true);
-            } else {
-                setIsAuthorized(false);
-            }
-        } catch (error) {
-            setIsAuthorized(false);
         }
     };
 
@@ -113,23 +94,25 @@ function ProtectedRoute() {
     };
 
     if (loading) {
-        return <div className='container-fluid vh-100 d-flex justify-content-center align-items-center'>
-                    <div className="mb-2">
-                        <div className="spinner-grow text-dark me-2" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                        <div className="spinner-grow text-primary me-2" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                        <div className="spinner-grow text-secondary me-2" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
+        return (
+            <div className='container-fluid vh-100 d-flex justify-content-center align-items-center'>
+                <div className="mb-2">
+                    <div className="spinner-grow text-dark me-2" role="status">
+                        <span className="visually-hidden">Loading...</span>
                     </div>
-                </div>;
+                    <div className="spinner-grow text-primary me-2" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <div className="spinner-grow text-secondary me-2" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     if (error && isAuthorized) {
-        return <div>Erro ao carregar dados do usuário: {error}. Por favor recarregue a pagina.</div>;
+        return <div>Erro ao carregar dados do usuário: {error}. Por favor recarregue a página.</div>;
     }
 
     return isAuthorized ? (

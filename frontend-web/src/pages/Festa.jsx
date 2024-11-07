@@ -31,6 +31,7 @@ function Festa(){
     const [caixasFesta, setCaixasFesta] = useState([]);
     const [produtos_estoque, setProdutosEstoque] = useState([]);
     const [valor, setValor] = useState('');
+    const [troco_inicial, setTrocoInicial] = useState('');
     const [quant, setQuant] = useState('');
     const [data, setData] = useState('');
     const [selectedProduto, setSelectedProduto] = useState(null);
@@ -49,107 +50,100 @@ function Festa(){
         }
     }, [festa]);
 
-    const getFesta = async () => {
-        try {
-            const response = await api.get("/api/festa-atual/");
-            if(response.data.id){
-                setFesta(response.data);
-                setError(null);
-            }else{
-                setError(response.data.message);
+    const getFesta = () => {
+        api.get("/api/festa-atual/")
+            .then((res) => {
+                if(res.data.id){
+                    setFesta(res.data);
+                    setError(null);
+                }else{
+                    setError(res.data.message);
+                    setFesta(null);
+                }
+            })
+            .catch((error) => {            
+                setError(error.response.data.message || "Ocorreu um erro ao buscar a festa.");
                 setFesta(null);
-            }
-        } catch (err) {
-            setError(err.response.data.message || "Ocorreu um erro ao buscar a festa.");
-            setFesta(null);
+            });
+    };
+
+    const getBarracas = () => {
+        if(festa){
+            api.get("/api/barracas-ativas/")
+            .then((res) => {
+                setBarracas(res.data);
+            })
+            .catch((error) => console.error(error));
         }
     };
 
-    const getBarracas = async () => {
+    const getCaixas = () => {
         if(festa){
-            try {
-                const response = await api.get("/api/barracas-ativas/");
-                setBarracas(response.data);
-            } catch (err) {
-                console.error(err);
-            }
+            api.get("/api/groups/3/users/")
+            .then((res) => {
+                setCaixas(res.data);
+            })
+            .catch((error) => console.error(error));
         }
     };
 
-    const getCaixas = async () => {
+    const getBarracasUsuarios = () => {
         if(festa){
-            try {
-                const response = await api.get(`/api/groups/3/users/`);
-                setCaixas(response.data);
-            } catch (err) {
-                console.error(err);
-            }
+            api.get("/api/groups/2/users/")
+            .then((res) => {
+                setBarracasUsuarios(res.data);
+            })
+            .catch((error) => console.error(error));
         }
     };
 
-    const getBarracasUsuarios = async () => {
+    const getBarracasFesta = () => {
         if(festa){
-            try {
-                const response = await api.get(`/api/groups/2/users/`);
-                setBarracasUsuarios(response.data);
-            } catch (err) {
-                console.error(err);
-            }
+            api.get("/api/barraca_festa/")
+            .then((res) => {
+                setBarracasFesta(res.data);
+            })
+            .catch((error) => console.error(error));
         }
     };
 
-    const getBarracasFesta = async () => {
+    const getCaixasFesta = () => {
         if(festa){
-            try {
-                const response = await api.get("/api/barraca_festa/");
-                setBarracasFesta(response.data);
-            } catch (err) {
-                console.error(err);
-            }
+            api.get("/api/caixa_festa/")
+            .then((res) => {
+                setCaixasFesta(res.data);
+            })
+            .catch((error) => console.error(error));
         }
     };
 
-    const getCaixasFesta = async () => {
+    const getProdutos = () => {
         if(festa){
-            try {
-                const response = await api.get(`/api/caixa_festa/`);
-                setCaixasFesta(response.data);
-            } catch (err) {
-                console.error(err);
-            }
+            api.get("/api/produto/festa_atual/")
+            .then((res) => {
+                setProdutos(res.data);
+            })
+            .catch((error) => console.error(error));
         }
     };
 
-    const getProdutos = async () => {
+    const getProdutos_Festa = () => {
         if(festa){
-            try {
-                const response = await api.get(`/api/produto/festa_atual/`);
-                setProdutos(response.data);
-            } catch (err) {
-                console.error(err);
-            }
+            api.get("/api/produto_festa/")
+            .then((res) => {
+                setProdutos_Festa(res.data);
+            })
+            .catch((error) => console.error(error));
         }
     };
 
-    const getProdutos_Festa = async () => {
+    const getProdutosEstoque = () => {
         if(festa){
-            try {
-                const response = await api.get(`/api/produto_festa/`);
-                setProdutos_Festa(response.data);
-            } catch (err) {
-                console.error(err);
-            }
-        }
-    };
-
-    const getProdutosEstoque = async () => {
-        if(festa){
-            try {
-                const response = await api.get(`/api/estoque/`);
-                setProdutosEstoque(response.data);
-            } catch (err) {
-                console.error(err);
-            }
+            api.get("/api/estoque/")
+            .then((res) => {
+                setProdutosEstoque(res.data);
+            })
+            .catch((error) => console.error(error));
         }
     };
     
@@ -352,18 +346,16 @@ function Festa(){
         });
     };
 
-// Função para remover formatação R$ e converter para número
     const formatToNumber = (formattedValue) => {
         return parseFloat(formattedValue.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
     };
 
-    // Função para adicionar máscara de moeda (R$)
     const mascaraMoeda = (input) => {
-        let value = input.value.replace(/\D/g, ""); // Remove qualquer caractere que não seja número
-        value = (value / 100).toFixed(2) + ""; // Divide por 100 e fixa em duas casas decimais
-        value = value.replace(".", ","); // Substitui ponto por vírgula
-        value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Adiciona ponto como separador de milhar
-        input.value = "R$ " + value; // Adiciona o símbolo de reais
+        let value = input.value.replace(/\D/g, "");
+        value = (value / 100).toFixed(2) + ""; 
+        value = value.replace(".", ","); 
+        value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        input.value = "R$ " + value;
     };
 
     const handleAddBarraca = async (e) => {
@@ -391,7 +383,7 @@ function Festa(){
         if(selectedCaixa !== null){
             setIsLoading(true);
             try {
-                await api.post('/api/caixa_festa/', { user_caixa: parseInt(selectedCaixa, 10) });
+                await api.post('/api/caixa_festa/', { user_caixa: parseInt(selectedCaixa, 10) , troco_inicial: troco_inicial});
                 addAlertCaixa({ type: 'alert-success', title: 'Sucesso!', body: 'Caixa adicionado com sucesso!' });
                 getCaixas();
                 getCaixasFesta();
@@ -658,6 +650,22 @@ function Festa(){
                                                 <option key={caixa.id} value={caixa.id}>{caixa.username}</option>
                                             ))}
                                         </select>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="form-label">Troco Inicial</label>
+                                        <NumericFormat
+                                            value={troco_inicial}
+                                            onValueChange={(values) => setTrocoInicial(values.value)}
+                                            thousandSeparator="."
+                                            decimalSeparator=","
+                                            prefix="R$ "
+                                            decimalScale={2}
+                                            fixedDecimalScale
+                                            allowNegative={false}
+                                            className="form-control"
+                                            placeholder="R$ 0,00"
+                                            required
+                                        />
                                     </div>
                                     <div className="mb-4">
                                         <button type="submit" className="btn btn-primary me-2"><i className="align-middle me-2 fas fa-fw fa-plus-square"></i> Adicionar</button>
